@@ -15,14 +15,14 @@ import (
 
 // DashboardsService deals with fetching dashboards from k8s client
 type DashboardsService struct {
-	prom      prometheus.ClientInterface
-	k8sClient kubernetes.KialiMonitoringInterface
-	config    config.Config
+	promClient prometheus.ClientInterface
+	k8sClient  kubernetes.ClientInterface
+	config     config.Config
 }
 
 // NewDashboardsService initializes this business service
-func NewDashboardsService(k8sClient kubernetes.KialiMonitoringInterface, prom prometheus.ClientInterface, conf config.Config) DashboardsService {
-	return DashboardsService{prom: prom, k8sClient: k8sClient, config: conf}
+func NewDashboardsService(conf config.Config) DashboardsService {
+	return DashboardsService{config: conf}
 }
 
 func (in *DashboardsService) errorf(format string, args ...interface{}) {
@@ -31,12 +31,24 @@ func (in *DashboardsService) errorf(format string, args ...interface{}) {
 	}
 }
 
-func (in *DashboardsService) k8s() (kubernetes.KialiMonitoringInterface, error) {
+func (in *DashboardsService) prom() (prometheus.ClientInterface, error) {
+	// Lazy init
+	if in.promClient == nil {
+		client, err := prometheus.NewClient(in.config.PrometheusURL)
+		if err != nil {
+			return nil, fmt.Errorf("Cannot initialize Prometheus Client: %v", err)
+		}
+		in.promClient = client
+	}
+	return in.promClient, nil
+}
+
+func (in *DashboardsService) k8s() (kubernetes.ClientInterface, error) {
 	// Lazy init
 	if in.k8sClient == nil {
-		client, err := kubernetes.NewKialiMonitoringClient()
+		client, err := kubernetes.NewClient()
 		if err != nil {
-			return nil, fmt.Errorf("Cannot initialize Kiali Monitoring Client: %v", err)
+			return nil, fmt.Errorf("Cannot initialize Kubernetes Client: %v", err)
 		}
 		in.k8sClient = client
 	}
@@ -152,6 +164,11 @@ func (in *DashboardsService) resolveReferences(namespace string, dashboard *v1al
 
 // GetDashboard returns a dashboard filled-in with target data
 func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template string) (*model.MonitoringDashboard, error) {
+	promClient, err := in.prom()
+	if err != nil {
+		return nil, err
+	}
+
 	dashboard, err := in.loadAndResolveDashboardResource(params.Namespace, template, map[string]bool{})
 	if err != nil {
 		return nil, err
@@ -185,11 +202,11 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 				if chart.Aggregator != "" {
 					aggregator = chart.Aggregator
 				}
-				filledCharts[idx].Metric = in.prom.FetchRange(chart.MetricName, labels, grouping, aggregator, &params.MetricsQuery)
+				filledCharts[idx].Metric = promClient.FetchRange(chart.MetricName, labels, grouping, aggregator, &params.MetricsQuery)
 			} else if chart.DataType == v1alpha1.Rate {
-				filledCharts[idx].Metric = in.prom.FetchRateRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				filledCharts[idx].Metric = promClient.FetchRateRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
 			} else {
-				filledCharts[idx].Histogram = in.prom.FetchHistogramRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				filledCharts[idx].Histogram = promClient.FetchHistogramRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
 			}
 		}(i, item.Chart)
 	}
@@ -243,12 +260,17 @@ func (in *DashboardsService) buildRuntimesList(namespace string, templatesNames 
 }
 
 func (in *DashboardsService) fetchMetricNames(namespace, app, version string) []string {
+	promClient, err := in.prom()
+	if err != nil {
+		return []string{}
+	}
+
 	labels := fmt.Sprintf(`{namespace="%s",app="%s"`, namespace, app)
 	if version != "" {
 		labels += fmt.Sprintf(`,version="%s"`, version)
 	}
 	labels += "}"
-	metrics, err := in.prom.GetMetricsForLabels([]string{labels})
+	metrics, err := promClient.GetMetricsForLabels([]string{labels})
 	if err != nil {
 		in.errorf("Runtimes discovery failed, cannot load metrics for labels: %s. Error was: %v", labels, err)
 	}

@@ -9,21 +9,21 @@ import (
 	"github.com/jotak/k-charted/kubernetes/v1alpha1"
 )
 
-// KialiMonitoringInterface for mocks (only mocked function are necessary here)
-type KialiMonitoringInterface interface {
+// ClientInterface for mocks (only mocked function are necessary here)
+type ClientInterface interface {
 	GetDashboard(namespace string, name string) (*v1alpha1.MonitoringDashboard, error)
 	GetDashboards(namespace string) ([]v1alpha1.MonitoringDashboard, error)
 }
 
-// KialiMonitoringClient is the client struct for Kiali Monitoring API over Kubernetes
+// Client is the client struct for Kiali Monitoring API over Kubernetes
 // API to get MonitoringDashboards
-type KialiMonitoringClient struct {
-	KialiMonitoringInterface
+type Client struct {
+	ClientInterface
 	client *rest.RESTClient
 }
 
-// NewKialiMonitoringClient creates a new client able to fetch Kiali Monitoring API.
-func NewKialiMonitoringClient() (*KialiMonitoringClient, error) {
+// NewClient creates a new client able to fetch Kiali Monitoring API.
+func NewClient() (*Client, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
@@ -40,11 +40,11 @@ func NewKialiMonitoringClient() (*KialiMonitoringClient, error) {
 		return nil, err
 	}
 
-	client, err := newClientForAPI(config, v1alpha1.KialiMonitoringGroupVersion, types)
+	client, err := newClientForAPI(config, v1alpha1.GroupVersion, types)
 	if err != nil {
 		return nil, err
 	}
-	return &KialiMonitoringClient{
+	return &Client{
 		client: client,
 	}, err
 }
@@ -67,7 +67,7 @@ func newClientForAPI(fromCfg *rest.Config, groupVersion schema.GroupVersion, sch
 }
 
 // GetDashboard returns a MonitoringDashboard for the given name
-func (in *KialiMonitoringClient) GetDashboard(namespace, name string) (*v1alpha1.MonitoringDashboard, error) {
+func (in *Client) GetDashboard(namespace, name string) (*v1alpha1.MonitoringDashboard, error) {
 	result := v1alpha1.MonitoringDashboard{}
 	err := in.client.Get().Namespace(namespace).Resource("monitoringdashboards").SubResource(name).Do().Into(&result)
 	if err != nil {
@@ -77,7 +77,7 @@ func (in *KialiMonitoringClient) GetDashboard(namespace, name string) (*v1alpha1
 }
 
 // GetDashboards returns all MonitoringDashboards from the given namespace
-func (in *KialiMonitoringClient) GetDashboards(namespace string) ([]v1alpha1.MonitoringDashboard, error) {
+func (in *Client) GetDashboards(namespace string) ([]v1alpha1.MonitoringDashboard, error) {
 	result := v1alpha1.MonitoringDashboardsList{}
 	err := in.client.Get().Namespace(namespace).Resource("monitoringdashboards").Do().Into(&result)
 	if err != nil {

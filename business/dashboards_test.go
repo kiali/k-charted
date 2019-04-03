@@ -6,7 +6,6 @@ import (
 
 	pmodel "github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/jotak/k-charted/config"
@@ -17,33 +16,20 @@ import (
 	pmock "github.com/jotak/k-charted/prometheus/mock"
 )
 
-type k8sKialiMonitoringClientMock struct {
-	mock.Mock
-}
-
-func (o *k8sKialiMonitoringClientMock) GetDashboard(namespace string, name string) (*v1alpha1.MonitoringDashboard, error) {
-	args := o.Called(namespace, name)
-	if args.Error(1) != nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*v1alpha1.MonitoringDashboard), nil
-}
-
-func (o *k8sKialiMonitoringClientMock) GetDashboards(namespace string) ([]v1alpha1.MonitoringDashboard, error) {
-	args := o.Called(namespace)
-	if args.Error(1) != nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]v1alpha1.MonitoringDashboard), nil
+func setupService() (*DashboardsService, *kmock.ClientMock, *pmock.PromClientMock) {
+	k8s := new(kmock.ClientMock)
+	prom := new(pmock.PromClientMock)
+	service := NewDashboardsService(config.Config{GlobalNamespace: "istio-system"})
+	service.k8sClient = k8s
+	service.promClient = prom
+	return &service, k8s, prom
 }
 
 func TestGetDashboard(t *testing.T) {
 	assert := assert.New(t)
 
 	// Setup mocks
-	k8s := new(k8sKialiMonitoringClientMock)
-	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(k8s, prom, config.Config{GlobalNamespace: "istio-system"})
+	service, k8s, prom := setupService()
 	k8s.On("GetDashboard", "my-namespace", "dashboard1").Return(fakeDashboard("1"), nil)
 
 	expectedLabels := "{namespace=\"my-namespace\",app=\"my-app\"}"
@@ -74,9 +60,7 @@ func TestGetDashboardFromKialiNamespace(t *testing.T) {
 	assert := assert.New(t)
 
 	// Setup mocks
-	k8s := new(k8sKialiMonitoringClientMock)
-	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(k8s, prom, config.Config{GlobalNamespace: "istio-system"})
+	service, k8s, prom := setupService()
 	k8s.On("GetDashboard", "my-namespace", "dashboard1").Return(nil, errors.New("denied"))
 	k8s.On("GetDashboard", "istio-system", "dashboard1").Return(fakeDashboard("1"), nil)
 
@@ -103,9 +87,7 @@ func TestGetComposedDashboard(t *testing.T) {
 	composed.Spec.Items = append(composed.Spec.Items, v1alpha1.MonitoringDashboardItem{Include: "dashboard1"})
 
 	// Setup mocks
-	k8s := new(k8sKialiMonitoringClientMock)
-	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(k8s, prom, config.Config{GlobalNamespace: "istio-system"})
+	service, k8s, _ := setupService()
 	k8s.On("GetDashboard", "my-namespace", "dashboard1").Return(fakeDashboard("1"), nil)
 	k8s.On("GetDashboard", "my-namespace", "dashboard2").Return(composed, nil)
 
@@ -127,9 +109,7 @@ func TestGetComposedDashboardSingleChart(t *testing.T) {
 	composed.Spec.Items = append(composed.Spec.Items, v1alpha1.MonitoringDashboardItem{Include: "dashboard1$My chart 1_2"})
 
 	// Setup mocks
-	k8s := new(k8sKialiMonitoringClientMock)
-	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(k8s, prom, config.Config{GlobalNamespace: "istio-system"})
+	service, k8s, _ := setupService()
 	k8s.On("GetDashboard", "my-namespace", "dashboard1").Return(fakeDashboard("1"), nil)
 	k8s.On("GetDashboard", "my-namespace", "dashboard2").Return(composed, nil)
 
@@ -150,9 +130,7 @@ func TestCircularDependency(t *testing.T) {
 	composed.Spec.Items = append(composed.Spec.Items, v1alpha1.MonitoringDashboardItem{Include: "dashboard2"})
 
 	// Setup mocks
-	k8s := new(k8sKialiMonitoringClientMock)
-	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(k8s, prom, config.Config{GlobalNamespace: "istio-system"})
+	service, k8s, _ := setupService()
 	k8s.On("GetDashboard", "my-namespace", "dashboard2").Return(composed, nil)
 
 	_, err := service.loadAndResolveDashboardResource("my-namespace", "dashboard2", map[string]bool{})

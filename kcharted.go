@@ -9,5 +9,5 @@ import (
 
 func main() {
 	fmt.Printf("Hello, Charts")
-	business.NewDashboardsService(nil, nil, config.Config{GlobalNamespace: "istio-system"})
+	business.NewDashboardsService(config.Config{GlobalNamespace: "istio-system"})
 }

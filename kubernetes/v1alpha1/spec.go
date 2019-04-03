@@ -15,7 +15,7 @@ const (
 	Histogram = "histogram"
 )
 
-var KialiMonitoringGroupVersion = schema.GroupVersion{
+var GroupVersion = schema.GroupVersion{
 	Group:   "monitoring.kiali.io",
 	Version: "v1alpha1",
 }

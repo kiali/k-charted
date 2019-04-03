@@ -1,3 +1,3 @@
 # K-Charted
 
-Dashboards and Charts for Kubernetes
+Dashboards and Charts library for Kubernetes

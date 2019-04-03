@@ -1,6 +1,29 @@
 package mock
 
-import "github.com/jotak/k-charted/kubernetes/v1alpha1"
+import (
+	"github.com/jotak/k-charted/kubernetes/v1alpha1"
+	"github.com/stretchr/testify/mock"
+)
+
+type ClientMock struct {
+	mock.Mock
+}
+
+func (o *ClientMock) GetDashboard(namespace string, name string) (*v1alpha1.MonitoringDashboard, error) {
+	args := o.Called(namespace, name)
+	if args.Error(1) != nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*v1alpha1.MonitoringDashboard), nil
+}
+
+func (o *ClientMock) GetDashboards(namespace string) ([]v1alpha1.MonitoringDashboard, error) {
+	args := o.Called(namespace)
+	if args.Error(1) != nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]v1alpha1.MonitoringDashboard), nil
+}
 
 func FakeChart(id, dataType string) v1alpha1.MonitoringDashboardChart {
 	return v1alpha1.MonitoringDashboardChart{
