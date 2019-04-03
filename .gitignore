@@ -1,0 +1,70 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# The compliled binary
+k-charted
+
+# Files specific to our build process
+_output
+
+# Swap files
+.*.sw*
+
+# Eclipse
+.project
+.settings/
+
+# IntelliJ
+.idea/
+
+# UI
+
+# dependencies
+frontend/node_modules
+
+# IDE
+frontend/.idea
+frontend/.vscode
+
+# testing
+frontend/coverage
+
+# production
+frontend/build
+
+# misc
+frontend/.DS_Store
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+frontend/package-lock.json
+
+# compiled patternfly assets
+frontend/src/**/*.css
+frontend/src/**/*.css.map
+!frontend/src/index.css
+!frontend/src/css/.gitkeep
+frontend/src/img/*
+!frontend/src/img/.gitkeep
+frontend/src/fonts/*
+!frontend/src/fonts/.gitkeep
+frontend/src/sass/*
+!frontend/src/sass/index.sass
