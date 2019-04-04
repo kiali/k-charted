@@ -36,8 +36,8 @@ type Metrics struct {
 // Metric holds the Prometheus Matrix model, which contains one or more time series (depending on grouping)
 type Metric struct {
 	Matrix model.Matrix `json:"matrix"`
-	err    error
+	Err    error
 }
 
 // Histogram contains Metric objects for several histogram-kind statistics
-type Histogram = map[string]*Metric
+type Histogram = map[string]Metric

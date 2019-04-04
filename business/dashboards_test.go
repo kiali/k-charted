@@ -52,8 +52,8 @@ func TestGetDashboard(t *testing.T) {
 	assert.Equal("My chart 1_2", dashboard.Charts[1].Name)
 	assert.Nil(dashboard.Charts[0].Histogram)
 	assert.Nil(dashboard.Charts[1].Metric)
-	assert.Equal(pmodel.SampleValue(10), dashboard.Charts[0].Metric.Matrix[0].Values[0].Value)
-	assert.Equal(pmodel.SampleValue(11), dashboard.Charts[1].Histogram["avg"].Matrix[0].Values[0].Value)
+	assert.Equal(float64(10), dashboard.Charts[0].Metric[0].Values[0].Value)
+	assert.Equal(float64(11), dashboard.Charts[1].Histogram["avg"][0].Values[0].Value)
 }
 
 func TestGetDashboardFromKialiNamespace(t *testing.T) {
@@ -197,8 +197,8 @@ func TestDiscoveryMatcherWithComposition(t *testing.T) {
 	assert.Equal("dashboard2", runtimes[0].DashboardRefs[0].Template)
 }
 
-func fakeCounter(value int) *prometheus.Metric {
-	return &prometheus.Metric{
+func fakeCounter(value int) prometheus.Metric {
+	return prometheus.Metric{
 		Matrix: pmodel.Matrix{
 			&pmodel.SampleStream{
 				Metric: pmodel.Metric{},
@@ -231,22 +231,6 @@ func fakeDashboard(id string) *v1alpha1.MonitoringDashboard {
 					Chart: kmock.FakeChart(id+"_2", "histogram"),
 				},
 			},
-		},
-	}
-}
-
-func fakeMetrics() prometheus.Metrics {
-	return prometheus.Metrics{
-		Metrics: map[string]*prometheus.Metric{
-			"request_count":       fakeCounter(10),
-			"request_error_count": fakeCounter(11),
-			"tcp_received":        fakeCounter(12),
-			"tcp_sent":            fakeCounter(13),
-		},
-		Histograms: map[string]prometheus.Histogram{
-			"request_duration": fakeHistogram(20),
-			"request_size":     fakeHistogram(21),
-			"response_size":    fakeHistogram(22),
 		},
 	}
 }

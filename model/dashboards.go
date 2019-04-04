@@ -3,8 +3,9 @@ package model
 import (
 	"sort"
 
+	pmod "github.com/prometheus/common/model"
+
 	"github.com/jotak/k-charted/kubernetes/v1alpha1"
-	"github.com/jotak/k-charted/prometheus"
 )
 
 // MonitoringDashboard is the model representing custom monitoring dashboard, transformed from MonitoringDashboard k8s resource
@@ -16,11 +17,51 @@ type MonitoringDashboard struct {
 
 // Chart is the model representing a custom chart, transformed from charts in MonitoringDashboard k8s resource
 type Chart struct {
-	Name      string               `json:"name"`
-	Unit      string               `json:"unit"`
-	Spans     int                  `json:"spans"`
-	Metric    *prometheus.Metric   `json:"metric"`
-	Histogram prometheus.Histogram `json:"histogram"`
+	Name      string                     `json:"name"`
+	Unit      string                     `json:"unit"`
+	Spans     int                        `json:"spans"`
+	Metric    []*SampleStream            `json:"metric"`
+	Histogram map[string][]*SampleStream `json:"histogram"`
+}
+
+func ConvertMatrix(from pmod.Matrix) []*SampleStream {
+	series := make([]*SampleStream, len(from))
+	for i, s := range from {
+		series[i] = convertSampleStream(s)
+	}
+	return series
+}
+
+type SampleStream struct {
+	LabelSet map[string]string `json:"labelSet"`
+	Values   []SamplePair      `json:"values"`
+}
+
+func convertSampleStream(from *pmod.SampleStream) *SampleStream {
+	labelSet := make(map[string]string, len(from.Metric))
+	for k, v := range from.Metric {
+		labelSet[string(k)] = string(v)
+	}
+	values := make([]SamplePair, len(from.Values))
+	for i, v := range from.Values {
+		values[i] = convertSamplePair(&v)
+	}
+	return &SampleStream{
+		LabelSet: labelSet,
+		Values:   values,
+	}
+}
+
+type SamplePair struct {
+	Timestamp int64
+	Value     float64
+}
+
+func convertSamplePair(from *pmod.SamplePair) SamplePair {
+	return SamplePair{
+		Timestamp: int64(from.Timestamp),
+		Value:     float64(from.Value),
+	}
 }
 
 // ConvertChart converts a k8s chart (from MonitoringDashboard k8s resource) into this models chart

@@ -12,8 +12,8 @@ import (
 
 type ClientInterface interface {
 	FetchHistogramRange(metricName, labels, grouping string, q *MetricsQuery) Histogram
-	FetchRange(metricName, labels, grouping, aggregator string, q *MetricsQuery) *Metric
-	FetchRateRange(metricName, labels, grouping string, q *MetricsQuery) *Metric
+	FetchRange(metricName, labels, grouping, aggregator string, q *MetricsQuery) Metric
+	FetchRateRange(metricName, labels, grouping string, q *MetricsQuery) Metric
 	GetMetricsForLabels(labels []string) ([]string, error)
 }
 
@@ -37,7 +37,7 @@ func NewClient(url string) (*Client, error) {
 }
 
 // FetchRange fetches a simple metric (gauge or counter) in given range
-func (in *Client) FetchRange(metricName, labels, grouping, aggregator string, q *MetricsQuery) *Metric {
+func (in *Client) FetchRange(metricName, labels, grouping, aggregator string, q *MetricsQuery) Metric {
 	query := fmt.Sprintf("%s(%s%s)", aggregator, metricName, labels)
 	if grouping != "" {
 		query += fmt.Sprintf(" by (%s)", grouping)
@@ -47,7 +47,7 @@ func (in *Client) FetchRange(metricName, labels, grouping, aggregator string, q 
 }
 
 // FetchRateRange fetches a counter's rate in given range
-func (in *Client) FetchRateRange(metricName, labels, grouping string, q *MetricsQuery) *Metric {
+func (in *Client) FetchRateRange(metricName, labels, grouping string, q *MetricsQuery) Metric {
 	var query string
 	// Example: round(sum(rate(my_counter{foo=bar}[5m])) by (baz), 0.001)
 	if grouping == "" {
@@ -93,16 +93,16 @@ func (in *Client) FetchHistogramRange(metricName, labels, grouping string, q *Me
 	return histogram
 }
 
-func (in *Client) fetchRange(query string, bounds v1.Range) *Metric {
+func (in *Client) fetchRange(query string, bounds v1.Range) Metric {
 	result, err := in.api.QueryRange(context.Background(), query, bounds)
 	if err != nil {
-		return &Metric{err: err}
+		return Metric{Err: err}
 	}
 	switch result.Type() {
 	case model.ValMatrix:
-		return &Metric{Matrix: result.(model.Matrix)}
+		return Metric{Matrix: result.(model.Matrix)}
 	}
-	return &Metric{err: fmt.Errorf("Invalid query, matrix expected: %s", query)}
+	return Metric{Err: fmt.Errorf("Invalid query, matrix expected: %s", query)}
 }
 
 // GetMetricsForLabels returns a list of metrics existing for the provided labels set

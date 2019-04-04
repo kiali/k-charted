@@ -202,11 +202,14 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 				if chart.Aggregator != "" {
 					aggregator = chart.Aggregator
 				}
-				filledCharts[idx].Metric = promClient.FetchRange(chart.MetricName, labels, grouping, aggregator, &params.MetricsQuery)
+				metric := promClient.FetchRange(chart.MetricName, labels, grouping, aggregator, &params.MetricsQuery)
+				filledCharts[idx].Metric = in.convertMetric(metric, chart.MetricName)
 			} else if chart.DataType == v1alpha1.Rate {
-				filledCharts[idx].Metric = promClient.FetchRateRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				metric := promClient.FetchRateRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				filledCharts[idx].Metric = in.convertMetric(metric, chart.MetricName)
 			} else {
-				filledCharts[idx].Histogram = promClient.FetchHistogramRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				histo := promClient.FetchHistogramRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				filledCharts[idx].Histogram = in.convertHistogram(histo, chart.MetricName)
 			}
 		}(i, item.Chart)
 	}
@@ -217,6 +220,22 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 		Charts:       filledCharts,
 		Aggregations: aggLabels,
 	}, nil
+}
+
+func (in *DashboardsService) convertHistogram(from prometheus.Histogram, name string) map[string][]*model.SampleStream {
+	stats := make(map[string][]*model.SampleStream, len(from))
+	for k, v := range from {
+		stats[k] = in.convertMetric(v, name+"/"+k)
+	}
+	return stats
+}
+
+func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) []*model.SampleStream {
+	if from.Err != nil {
+		in.errorf("Error in metric %s: %v", name, from.Err)
+		return []*model.SampleStream{}
+	}
+	return model.ConvertMatrix(from.Matrix)
 }
 
 // GetCustomDashboardRefs finds all dashboard IDs and Titles associated to this app and add them to the model
