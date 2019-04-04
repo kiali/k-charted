@@ -1,6 +1,8 @@
 package model
 
 import (
+	"encoding/json"
+	"fmt"
 	"sort"
 
 	pmod "github.com/prometheus/common/model"
@@ -55,6 +57,19 @@ func convertSampleStream(from *pmod.SampleStream) *SampleStream {
 type SamplePair struct {
 	Timestamp int64
 	Value     float64
+}
+
+// MarshalJSON implements json.Marshaler.
+func (s SamplePair) MarshalJSON() ([]byte, error) {
+	t, err := json.Marshal(s.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	v, err := json.Marshal(s.Value)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(fmt.Sprintf("[%s,%s]", t, v)), nil
 }
 
 func convertSamplePair(from *pmod.SamplePair) SamplePair {
