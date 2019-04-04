@@ -19,7 +19,11 @@ import (
 func setupService() (*DashboardsService, *kmock.ClientMock, *pmock.PromClientMock) {
 	k8s := new(kmock.ClientMock)
 	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(config.Config{GlobalNamespace: "istio-system"})
+	service := NewDashboardsService(config.Config{
+		GlobalNamespace:  "istio-system",
+		AppLabelName:     "APP",
+		VersionLabelName: "VERSION",
+	})
 	service.k8sClient = k8s
 	service.promClient = prom
 	return &service, k8s, prom
@@ -32,7 +36,7 @@ func TestGetDashboard(t *testing.T) {
 	service, k8s, prom := setupService()
 	k8s.On("GetDashboard", "my-namespace", "dashboard1").Return(fakeDashboard("1"), nil)
 
-	expectedLabels := "{namespace=\"my-namespace\",app=\"my-app\"}"
+	expectedLabels := "{namespace=\"my-namespace\",APP=\"my-app\"}"
 	query := model.DashboardQuery{
 		Namespace: "my-namespace",
 		App:       "my-app",
@@ -64,7 +68,7 @@ func TestGetDashboardFromKialiNamespace(t *testing.T) {
 	k8s.On("GetDashboard", "my-namespace", "dashboard1").Return(nil, errors.New("denied"))
 	k8s.On("GetDashboard", "istio-system", "dashboard1").Return(fakeDashboard("1"), nil)
 
-	expectedLabels := "{namespace=\"my-namespace\",app=\"my-app\"}"
+	expectedLabels := "{namespace=\"my-namespace\",APP=\"my-app\"}"
 	query := model.DashboardQuery{
 		Namespace: "my-namespace",
 		App:       "my-app",

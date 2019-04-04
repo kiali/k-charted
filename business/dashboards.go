@@ -175,10 +175,8 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 	}
 
 	aggLabels := model.ConvertAggregations(dashboard.Spec)
-	labels := fmt.Sprintf(`{namespace="%s",app="%s"`, params.Namespace, params.App)
-	if params.Version != "" {
-		labels += fmt.Sprintf(`,version="%s"`, params.Version)
-	} else {
+	labels := in.buildLabels(params.Namespace, params.App, params.Version)
+	if params.Version == "" {
 		// For app-based dashboards, we automatically add a possible aggregation/grouping over versions
 		versionsAgg := model.Aggregation{
 			Label:       "version",
@@ -186,7 +184,6 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 		}
 		aggLabels = append([]model.Aggregation{versionsAgg}, aggLabels...)
 	}
-	labels += "}"
 	grouping := strings.Join(params.ByLabels, ",")
 
 	wg := sync.WaitGroup{}
@@ -284,11 +281,7 @@ func (in *DashboardsService) fetchMetricNames(namespace, app, version string) []
 		return []string{}
 	}
 
-	labels := fmt.Sprintf(`{namespace="%s",app="%s"`, namespace, app)
-	if version != "" {
-		labels += fmt.Sprintf(`,version="%s"`, version)
-	}
-	labels += "}"
+	labels := in.buildLabels(namespace, app, version)
 	metrics, err := promClient.GetMetricsForLabels([]string{labels})
 	if err != nil {
 		in.errorf("Runtimes discovery failed, cannot load metrics for labels: %s. Error was: %v", labels, err)
@@ -372,4 +365,13 @@ func addDashboardToRuntimes(dashboard *v1alpha1.MonitoringDashboard, runtimes []
 		})
 	}
 	return runtimes
+}
+
+func (in *DashboardsService) buildLabels(namespace, app, version string) string {
+	labels := fmt.Sprintf(`{namespace="%s",%s="%s"`, namespace, in.config.AppLabelName, app)
+	if version != "" {
+		labels += fmt.Sprintf(`,%s="%s"`, in.config.VersionLabelName, version)
+	}
+	labels += "}"
+	return labels
 }
