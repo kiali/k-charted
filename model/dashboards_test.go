@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/jotak/k-charted/kubernetes/v1alpha1"
+	"github.com/kiali/k-charted/kubernetes/v1alpha1"
 )
 
 func TestConvertAggregations(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jotak/k-charted/model"
-	"github.com/jotak/k-charted/prometheus"
+	"github.com/kiali/k-charted/model"
+	"github.com/kiali/k-charted/prometheus"
 )
 
 func ExtractDashboardQueryParams(r *http.Request, q *model.DashboardQuery) error {

@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/jotak/k-charted/config"
-	kmock "github.com/jotak/k-charted/kubernetes/mock"
-	"github.com/jotak/k-charted/kubernetes/v1alpha1"
-	"github.com/jotak/k-charted/model"
-	"github.com/jotak/k-charted/prometheus"
-	pmock "github.com/jotak/k-charted/prometheus/mock"
+	"github.com/kiali/k-charted/config"
+	kmock "github.com/kiali/k-charted/kubernetes/mock"
+	"github.com/kiali/k-charted/kubernetes/v1alpha1"
+	"github.com/kiali/k-charted/model"
+	"github.com/kiali/k-charted/prometheus"
+	pmock "github.com/kiali/k-charted/prometheus/mock"
 )
 
 func setupService() (*DashboardsService, *kmock.ClientMock, *pmock.PromClientMock) {

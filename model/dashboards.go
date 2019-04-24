@@ -7,7 +7,7 @@ import (
 
 	pmod "github.com/prometheus/common/model"
 
-	"github.com/jotak/k-charted/kubernetes/v1alpha1"
+	"github.com/kiali/k-charted/kubernetes/v1alpha1"
 )
 
 // MonitoringDashboard is the model representing custom monitoring dashboard, transformed from MonitoringDashboard k8s resource

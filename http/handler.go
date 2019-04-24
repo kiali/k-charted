@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/jotak/k-charted/business"
-	"github.com/jotak/k-charted/config"
-	"github.com/jotak/k-charted/model"
 	"k8s.io/apimachinery/pkg/api/errors"
+
+	"github.com/kiali/k-charted/business"
+	"github.com/kiali/k-charted/config"
+	"github.com/kiali/k-charted/model"
 )
 
 // DashboardHandler is the API handler to fetch runtime metrics to be displayed, related to a single app

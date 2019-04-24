@@ -3,7 +3,7 @@ package mock
 import (
 	"github.com/stretchr/testify/mock"
 
-	"github.com/jotak/k-charted/prometheus"
+	"github.com/kiali/k-charted/prometheus"
 )
 
 type PromClientMock struct {

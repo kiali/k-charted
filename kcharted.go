@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/jotak/k-charted/business"
-	"github.com/jotak/k-charted/config"
+	"github.com/kiali/k-charted/business"
+	"github.com/kiali/k-charted/config"
 )
 
 func main() {

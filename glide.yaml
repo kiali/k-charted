@@ -1,4 +1,4 @@
-package: github.com/jotak/k-charted
+package: github.com/kiali/k-charted
 import:
 - package: k8s.io/client-go
   version: v8.0.0

@@ -1,8 +1,9 @@
 package mock
 
 import (
-	"github.com/jotak/k-charted/kubernetes/v1alpha1"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/kiali/k-charted/kubernetes/v1alpha1"
 )
 
 type ClientMock struct {

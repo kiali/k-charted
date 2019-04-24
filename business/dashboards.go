@@ -6,11 +6,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/jotak/k-charted/config"
-	"github.com/jotak/k-charted/kubernetes"
-	"github.com/jotak/k-charted/kubernetes/v1alpha1"
-	"github.com/jotak/k-charted/model"
-	"github.com/jotak/k-charted/prometheus"
+	"github.com/kiali/k-charted/config"
+	"github.com/kiali/k-charted/kubernetes"
+	"github.com/kiali/k-charted/kubernetes/v1alpha1"
+	"github.com/kiali/k-charted/model"
+	"github.com/kiali/k-charted/prometheus"
 )
 
 // DashboardsService deals with fetching dashboards from k8s client

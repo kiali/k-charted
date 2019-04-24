@@ -1,6 +1,6 @@
 package model
 
-import "github.com/jotak/k-charted/prometheus"
+import "github.com/kiali/k-charted/prometheus"
 
 // DashboardQuery holds query parameters for a dashboard query
 type DashboardQuery struct {

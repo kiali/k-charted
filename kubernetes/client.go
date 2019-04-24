@@ -6,7 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/rest"
 
-	"github.com/jotak/k-charted/kubernetes/v1alpha1"
+	"github.com/kiali/k-charted/kubernetes/v1alpha1"
 )
 
 // ClientInterface for mocks (only mocked function are necessary here)
