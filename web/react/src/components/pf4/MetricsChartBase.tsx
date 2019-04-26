@@ -1,8 +1,11 @@
 import * as React from 'react';
-import { LineChart, Icon } from 'patternfly-react';
-import { style } from 'typestyle';
-import { format } from 'd3-format';
-import { TimeSeries2, Metric, AllPromLabelsValues } from '../../types/Metrics';
+import { Chart, ChartGroup, ChartLegend, ChartLine, ChartLineProps, ChartTheme } from '@patternfly/react-charts';
+import { ExpandArrowsAltIcon } from '@patternfly/react-icons';
+import { VictoryTooltip } from 'victory';
+import { VictoryVoronoiContainer } from 'victory-voronoi-container';
+// import { format } from 'd3-format';
+import { VictoryChartInfo } from '../../types/VictoryChartInfo';
+import { LabelSet, AllPromLabelsValues } from '../../types/Labels';
 
 type MetricsChartBaseProps = {
   chartName: string;
@@ -10,51 +13,18 @@ type MetricsChartBaseProps = {
   onExpandRequested?: () => void;
 };
 
-const expandBlockStyle = style({
+const expandBlockStyle: React.CSSProperties = {
   marginBottom: '-1.5em',
   zIndex: 1,
   position: 'relative',
   textAlign: 'right'
-});
-
-interface C3ChartData {
-  x: string;
-  columns: any[][];
-  unload?: string[];
-}
+};
 
 abstract class MetricsChartBase<Props extends MetricsChartBaseProps> extends React.Component<Props> {
-  private previousColumns: string[] = [];
+  // private previousColumns: string[] = [];
 
   protected abstract getControlKey(): string;
-  protected abstract getSeriesData(): C3ChartData;
-
-  protected nameTimeSeries = (matrix: TimeSeries2[], groupName?: string): TimeSeries2[] => {
-    matrix.forEach(ts => {
-      const labels = Object.keys(ts.labelSet)
-        .filter(k => k !== 'reporter')
-        .map(k => ts.labelSet[k])
-        .join(',');
-      if (groupName) {
-        if (labels === '') {
-          // Ex: average // quantile 0.999 // etc.
-          ts.name = groupName;
-        } else {
-          // Ex: policy: average // stadium: quantile 0.999 // etc.
-          ts.name = labels + ': ' + groupName;
-        }
-      } else {
-        if (labels === '') {
-          // Ex: Request volume (ops)
-          ts.name = this.props.chartName;
-        } else {
-          // Ex: policy // stadium // etc.
-          ts.name = labels;
-        }
-      }
-    });
-    return matrix;
-  };
+  protected abstract getSeriesData(): VictoryChartInfo;
 
   protected get axisDefinition() {
     return {
@@ -114,11 +84,11 @@ abstract class MetricsChartBase<Props extends MetricsChartBaseProps> extends Rea
       val /= threshold;
       ++u;
     } while (Math.abs(val) >= threshold && u < units.length - 1);
-    return format('~r')(val) + ' ' + units[u];
+    return val + ' ' + units[u]; //format('~r')(val) + ' ' + units[u];
   };
 
   formatSI = (val: number, suffix: string): string => {
-    const fmt = format('~s')(val);
+    const fmt = '' + val; //format('~s')(val);
     let si = '';
     // Insert space before SI
     // "fmt" can be something like:
@@ -142,15 +112,16 @@ abstract class MetricsChartBase<Props extends MetricsChartBaseProps> extends Rea
 
   protected renderExpand = () => {
     return (
-      <div className={expandBlockStyle}>
+      <div style={expandBlockStyle}>
         <a href="#" onClick={this.onExpandHandler}>
-          Expand <Icon name="expand" type="fa" size="lg" title="Expand" />
+          {/* Expand <ExpandArrowsAltIcon name="expand" size="lg" title="Expand" /> */}
+          Expand <ExpandArrowsAltIcon />
         </a>
       </div>
     );
   };
 
-  protected isVisibleMetric(metric: Metric, labelValues: AllPromLabelsValues) {
+  protected isVisibleMetric(metric: LabelSet, labelValues: AllPromLabelsValues) {
     for (const promLabelName in metric) {
       if (metric.hasOwnProperty(promLabelName)) {
         const actualValue = metric[promLabelName];
@@ -163,37 +134,49 @@ abstract class MetricsChartBase<Props extends MetricsChartBaseProps> extends Rea
     return true;
   }
 
-  checkUnload(data: C3ChartData) {
-    const newColumns = data.columns.map(c => c[0] as string);
-    const diff = this.previousColumns.filter(col => !newColumns.includes(col));
-    if (diff.length > 0) {
-      data.unload = diff;
-    }
-    this.previousColumns = newColumns;
-  }
+  // checkUnload(data: C3ChartData) {
+  //   const newColumns = data.columns.map(c => c[0] as string);
+  //   const diff = this.previousColumns.filter(col => !newColumns.includes(col));
+  //   if (diff.length > 0) {
+  //     data.unload = diff;
+  //   }
+  //   this.previousColumns = newColumns;
+  // }
 
   render() {
     const data = this.getSeriesData();
-    this.checkUnload(data);
-    const height = 350;
-    // Note: if any direct interaction is needed with the C3 chart,
-    //  use "oninit" hook and reference "this" as the C3 chart object.
-    //  see commented code
-    // const self = this;
+    // this.checkUnload(data);
+    // const height = 350;
     return (
-      <div key={this.getControlKey()} style={{ height: '100%' }}>
+      <div key={this.getControlKey()} style={{ height: '100%', display: 'flex-inline' }}>
         {this.props.onExpandRequested && this.renderExpand()}
-        <LineChart
-          style={{ height: this.props.onExpandRequested ? height : '99%' }}
-          id={this.props.chartName}
-          title={{ text: this.props.chartName }}
-          data={data}
-          axis={this.axisDefinition}
-          point={{ show: false }}
-          // oninit={function(this: any) {
-          //   self.chartRef = this;
-          // }}
-        />
+        <div style={{ width: 450, height: 360 }}>
+          <div>
+            <Chart theme={ChartTheme.light.multi} name={this.props.chartName}
+              containerComponent={
+                <VictoryVoronoiContainer voronoiDimension="x"
+                  labels={(d: ChartLineProps) => d.name + ': ' + d.y}
+                  labelComponent={<VictoryTooltip cornerRadius={0} flyoutStyle={{fill: "white"}}/>}
+                />
+              }>
+              <ChartGroup>
+                {data.series.map(line => {
+                  return (
+                    <ChartLine data={line} />
+                  );
+                })}
+              </ChartGroup>
+            </Chart>
+          </div>
+          <div className="chart-legend">
+            <ChartLegend
+              data={data.legend}
+              title={this.props.chartName}
+              height={50}
+              theme={ChartTheme.light.multi}
+            />
+          </div>
+        </div>
       </div>
     );
   }

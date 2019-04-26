@@ -1,26 +1,25 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Col, Icon, Row } from 'patternfly-react';
-import { style } from 'typestyle';
-
-import history from '../../app/History';
-import * as M from '../../types/Metrics';
+import { Grid, GridItem } from '@patternfly/react-core';
+import { AngleDoubleLeftIcon } from '@patternfly/react-icons';
 
 import HistogramChart from './HistogramChart';
-import MetricChart from './MetricChart';
+import MetricChart from './MetricsChart';
+import { AllPromLabelsValues } from '../../types/Labels';
+import { DashboardModel, ChartModel } from '../../types/Dashboards';
 
-const expandedChartContainerStyle = style({
+const expandedChartContainerStyle: React.CSSProperties = {
   height: 'calc(100vh - 248px)'
-});
+};
 
-const expandedChartBackLinkStyle = style({
+const expandedChartBackLinkStyle: React.CSSProperties = {
   marginTop: '-1.7em',
   textAlign: 'right'
-});
+};
 
 type DashboardProps = {
-  dashboard: M.MonitoringDashboard;
-  labelValues: M.AllPromLabelsValues;
+  dashboard: DashboardModel;
+  labelValues: AllPromLabelsValues;
 };
 
 export class Dashboard extends React.Component<DashboardProps, {}> {
@@ -29,17 +28,17 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
   }
 
   render() {
-    const urlParams = new URLSearchParams(history.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     const expandedChart = urlParams.get('expand');
     urlParams.delete('expand');
-    const notExpandedLink = history.location.pathname + '?' + urlParams.toString();
+    const notExpandedLink = window.location.pathname + '?' + urlParams.toString();
 
     return (
       <div>
         {expandedChart && (
-          <h3 className={expandedChartBackLinkStyle}>
+          <h3 style={expandedChartBackLinkStyle}>
             <Link to={notExpandedLink}>
-              <Icon name="angle-double-left" /> View all metrics
+              <AngleDoubleLeftIcon /> View all metrics
             </Link>
           </h3>
         )}
@@ -50,29 +49,27 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
 
   renderMetrics() {
     return (
-      <div className="card-pf">
-        <Row>{this.props.dashboard.charts.map(c => this.renderChartCard(c))}</Row>
-      </div>
+      <Grid>{this.props.dashboard.charts.map(c => this.renderChartCard(c))}</Grid>
     );
   }
 
   private renderExpandedChart(chartKey: string) {
     const chart = this.props.dashboard.charts.find(c => c.name === chartKey);
     if (chart) {
-      return <div className={expandedChartContainerStyle}>{this.renderChart(chart)}</div>;
+      return <div style={expandedChartContainerStyle}>{this.renderChart(chart)}</div>;
     }
     return undefined;
   }
 
-  private renderChartCard(chart: M.Chart) {
+  private renderChartCard(chart: ChartModel) {
     return (
-      <Col xs={12} sm={12} md={chart.spans} key={chart.name}>
+      <GridItem span={chart.spans} key={chart.name}>
         {this.renderChart(chart, () => this.onExpandHandler(chart.name))}
-      </Col>
+      </GridItem>
     );
   }
 
-  private renderChart(chart: M.Chart, expandHandler?: () => void) {
+  private renderChart(chart: ChartModel, expandHandler?: () => void) {
     if (chart.metric) {
       return (
         <MetricChart
@@ -100,8 +97,8 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
   }
 
   private onExpandHandler = (chartKey: string): void => {
-    const urlParams = new URLSearchParams(history.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('expand', chartKey);
-    history.push(history.location.pathname + '?' + urlParams.toString());
+    window.history.pushState({}, '', window.location.pathname + '?' + urlParams.toString());
   };
 }
