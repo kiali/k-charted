@@ -1,11 +1,10 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Grid, GridItem } from '@patternfly/react-core';
-import { AngleDoubleLeftIcon } from '@patternfly/react-icons';
+import { Col, Icon, Row } from 'patternfly-react';
 
 import { AllPromLabelsValues } from '../../types/Labels';
 import { DashboardModel, ChartModel } from '../../types/Dashboards';
-import { metricsDataSupplier, histogramDataSupplier } from '../../utils/victoryChartsUtils';
+import { histogramDataSupplier, metricsDataSupplier } from '../../utils/c3ChartsUtils';
 import KChart from './KChart';
 
 const expandedChartContainerStyle: React.CSSProperties = {
@@ -38,7 +37,7 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
         {expandedChart && (
           <h3 style={expandedChartBackLinkStyle}>
             <Link to={notExpandedLink}>
-              <AngleDoubleLeftIcon /> View all metrics
+              <Icon name="angle-double-left" /> View all metrics
             </Link>
           </h3>
         )}
@@ -49,7 +48,9 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
 
   renderMetrics() {
     return (
-      <Grid>{this.props.dashboard.charts.map(c => this.renderChartCard(c))}</Grid>
+      <div className="card-pf">
+        <Row>{this.props.dashboard.charts.map(c => this.renderChartCard(c))}</Row>
+      </div>
     );
   }
 
@@ -63,9 +64,9 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
 
   private renderChartCard(chart: ChartModel) {
     return (
-      <GridItem span={chart.spans} key={chart.name}>
+      <Col xs={12} sm={12} md={chart.spans} key={chart.name}>
         {this.renderChart(chart, () => this.onExpandHandler(chart.name))}
-      </GridItem>
+      </Col>
     );
   }
 

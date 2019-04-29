@@ -1,7 +1,11 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
-import MetricsChart from './MetricsChart';
+import KChart from './KChart';
 import { TimeSeries } from '../../types/Metrics';
+import { metricsDataSupplier } from '../../utils/c3ChartsUtils';
+
+import 'patternfly/dist/css/patternfly.css';
+import 'patternfly-react/dist/css/patternfly-react.css';
 
 const genSeries = (names: string[]): TimeSeries[] => {
   const t0 = 1556269000;
@@ -19,10 +23,16 @@ const genSeries = (names: string[]): TimeSeries[] => {
   });
 }
 
-storiesOf('MetricsChart', module)
+storiesOf('PF3 KChart', module)
   .add('empty', () => (
-    <MetricsChart chartName="Test empty" unit="bytes" labelValues={new Map()} series={[]} />
+    <KChart
+      chartName="Test empty"
+      unit="bytes"
+      dataSupplier={metricsDataSupplier('Test empty', [], new Map())} />
   ))
   .add('with data', () => (
-    <MetricsChart chartName="Test with data" unit="bytes" labelValues={new Map()} series={genSeries(['a', 'b', 'c'])} />
+    <KChart
+      chartName="Test with data"
+      unit="bytes"
+      dataSupplier={metricsDataSupplier('Test with data', genSeries(['a', 'b', 'c']), new Map())} />
   )); 
