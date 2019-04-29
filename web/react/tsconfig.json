@@ -15,7 +15,7 @@
     "allowJs": false,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
+    "module": "commonjs",
     "jsx": "react",
     "moduleResolution": "node",
     "noImplicitReturns": true,
