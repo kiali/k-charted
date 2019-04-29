@@ -1,6 +1,8 @@
 package model
 
 import (
+	"encoding/json"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,4 +53,30 @@ func TestConvertAggregations(t *testing.T) {
 	assert.Equal(converted[0], Aggregation{DisplayName: "Address", Label: "address"})
 	assert.Equal(converted[1], Aggregation{DisplayName: "Error code", Label: "error_code"})
 	assert.Equal(converted[2], Aggregation{DisplayName: "Path", Label: "path"})
+}
+
+func TestJSONMarshalling(t *testing.T) {
+	assert := assert.New(t)
+
+	samplePair := SamplePair{
+		Timestamp: 123456789,
+		Value:     50.0,
+	}
+
+	res, err := json.Marshal(samplePair)
+	assert.Nil(err)
+	assert.Equal("[123456.789,\"50\"]", string(res))
+}
+
+func TestJSONMarshallingNaN(t *testing.T) {
+	assert := assert.New(t)
+
+	samplePair := SamplePair{
+		Timestamp: 123456789,
+		Value:     math.NaN(),
+	}
+
+	res, err := json.Marshal(samplePair)
+	assert.Nil(err)
+	assert.Equal("[123456.789,\"NaN\"]", string(res))
 }
