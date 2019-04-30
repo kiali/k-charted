@@ -40,7 +40,7 @@ const nameHistogramStat = (matrix: TimeSeries[], stat: string): TimeSeries[] => 
       ts.name = stat;
     } else {
       // Ex: policy: average // stadium: quantile 0.999 // etc.
-      ts.name = labels + ': ' + stat;
+      ts.name = `${labels}: ${stat}`;
     }
   });
   return matrix;

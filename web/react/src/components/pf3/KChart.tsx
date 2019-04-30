@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LineChart, Icon } from 'patternfly-react';
+import { Icon, LineChart } from 'patternfly-react';
 
 import { getFormatter } from '../../utils/formatter';
 import { C3ChartData } from '../../utils/c3ChartsUtils';
@@ -7,7 +7,7 @@ import { ChartModel } from '../../types/Dashboards';
 
 type KChartProps = {
   chart: ChartModel;
-  onExpandRequested?: () => void;
+  expandHandler?: () => void;
   dataSupplier: () => C3ChartData;
 };
 
@@ -23,7 +23,7 @@ class KChart extends React.Component<KChartProps> {
 
   onExpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    this.props.onExpandRequested!();
+    this.props.expandHandler!();
   };
 
   renderExpand = () => {
@@ -55,9 +55,9 @@ class KChart extends React.Component<KChartProps> {
     const self = this;
     return (
       <div key={this.props.chart.name} style={{ height: '100%' }}>
-        {this.props.onExpandRequested && this.renderExpand()}
+        {this.props.expandHandler && this.renderExpand()}
         <LineChart
-          style={{ height: this.props.onExpandRequested ? height : '99%' }}
+          style={{ height: this.props.expandHandler ? height : '99%' }}
           id={this.props.chart.name}
           title={{ text: this.props.chart.name }}
           data={data}

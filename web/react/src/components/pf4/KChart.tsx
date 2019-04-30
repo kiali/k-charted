@@ -9,7 +9,7 @@ import { VictoryChartInfo } from '../../types/VictoryChartInfo';
 
 type KChartProps = {
   chart: ChartModel;
-  onExpandRequested?: () => void;
+  expandHandler?: () => void;
   dataSupplier: () => VictoryChartInfo;
 };
 
@@ -23,7 +23,7 @@ const expandBlockStyle: React.CSSProperties = {
 class KChart extends React.Component<KChartProps> {
   onExpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    this.props.onExpandRequested!();
+    this.props.expandHandler!();
   };
 
   renderExpand = () => {
@@ -40,13 +40,13 @@ class KChart extends React.Component<KChartProps> {
     const data = this.props.dataSupplier();
     return (
       <div key={this.props.chart.name} style={{ height: '100%', display: 'flex-inline' }}>
-        {this.props.onExpandRequested && this.renderExpand()}
+        {this.props.expandHandler && this.renderExpand()}
         <div style={{ width: 450, height: 360 }}>
           <div>
             <Chart theme={ChartTheme.light.multi} name={this.props.chart.name}
               containerComponent={
                 <VictoryVoronoiContainer voronoiDimension="x"
-                  labels={(d: ChartLineProps) => d.name + ': ' + d.y}
+                  labels={(d: ChartLineProps) => `${d.name}: ${d.y}`}
                   labelComponent={<VictoryTooltip cornerRadius={0} flyoutStyle={{fill: "white"}}/>}
                 />
               }>

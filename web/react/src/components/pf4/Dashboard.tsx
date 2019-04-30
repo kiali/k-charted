@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { AngleDoubleLeftIcon } from '@patternfly/react-icons';
 
@@ -17,34 +16,39 @@ const expandedChartBackLinkStyle: React.CSSProperties = {
   textAlign: 'right'
 };
 
-type DashboardProps = {
+type Props = {
   dashboard: DashboardModel;
   labelValues: AllPromLabelsValues;
+  expandedChart?: string;
+  expandHandler: (expandedChart?: string) => void;
 };
 
-export class Dashboard extends React.Component<DashboardProps, {}> {
-  constructor(props: DashboardProps) {
+type State = {
+  expandedChart?: string;
+};
+
+export class Dashboard extends React.Component<Props, State> {
+  constructor(props: Props) {
     super(props);
+    this.state = {
+      expandedChart: props.expandedChart
+    };
   }
 
   render() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const expandedChart = urlParams.get('expand');
-    urlParams.delete('expand');
-    const notExpandedLink = window.location.pathname + '?' + urlParams.toString();
-
-    return (
-      <div>
-        {expandedChart && (
+    if (this.state.expandedChart) {
+      return (
+        <>
           <h3 style={expandedChartBackLinkStyle}>
-            <Link to={notExpandedLink}>
+            <a href="#" onClick={this.unexpandHandler}>
               <AngleDoubleLeftIcon /> View all metrics
-            </Link>
+            </a>
           </h3>
-        )}
-        {expandedChart ? this.renderExpandedChart(expandedChart) : this.renderMetrics()}
-      </div>
-    );
+          {this.renderExpandedChart(this.state.expandedChart)}
+        </>
+      );
+    }
+    return this.renderMetrics();
   }
 
   renderMetrics() {
@@ -64,7 +68,7 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
   private renderChartCard(chart: ChartModel) {
     return (
       <GridItem span={chart.spans} key={chart.name}>
-        {this.renderChart(chart, () => this.onExpandHandler(chart.name))}
+        {this.renderChart(chart, () => this.expandHandler(chart.name))}
       </GridItem>
     );
   }
@@ -77,16 +81,21 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
           key={chart.name}
           chart={chart}
           dataSupplier={dataSupplier}
-          onExpandRequested={expandHandler}
+          expandHandler={expandHandler}
         />
       );
     }
     return undefined;
   }
 
-  private onExpandHandler = (chartKey: string): void => {
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('expand', chartKey);
-    window.history.pushState({}, '', window.location.pathname + '?' + urlParams.toString());
+  private expandHandler = (chartKey: string): void => {
+    this.setState({ expandedChart: chartKey });
+    this.props.expandHandler(chartKey);
+  };
+
+  private unexpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    this.setState({ expandedChart: undefined });
+    this.props.expandHandler();
   };
 }
