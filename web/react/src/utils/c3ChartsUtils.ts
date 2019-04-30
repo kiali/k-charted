@@ -1,6 +1,7 @@
 import { TimeSeries, Histogram } from '../types/Metrics';
 import { AllPromLabelsValues } from '../types/Labels';
 import { filterAndNameMetric, filterAndNameHistogram } from './timeSeriesUtils';
+import { ChartModel } from '../types/Dashboards';
 
 export interface C3ChartData {
   x: string;
@@ -44,7 +45,7 @@ const toC3Columns = (matrix?: TimeSeries[], title?: string) => {
   return [xseries, ...yseries];
 };
 
-export const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labelValues: AllPromLabelsValues): () => C3ChartData => {
+const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labelValues: AllPromLabelsValues): () => C3ChartData => {
   return () => {
     const filtered = filterAndNameMetric(chartName, metrics, labelValues);
     return {
@@ -54,7 +55,7 @@ export const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], la
   };
 };
 
-export const histogramDataSupplier = (histogram: Histogram, labelValues: AllPromLabelsValues): () => C3ChartData => {
+const histogramDataSupplier = (histogram: Histogram, labelValues: AllPromLabelsValues): () => C3ChartData => {
   return () => {
     const filtered = filterAndNameHistogram(histogram, labelValues);
     return {
@@ -63,3 +64,12 @@ export const histogramDataSupplier = (histogram: Histogram, labelValues: AllProm
     };
   };
 };
+
+export const getDataSupplier = (chart: ChartModel, labelValues: AllPromLabelsValues): (() => C3ChartData) | undefined => {
+  if (chart.metric) {
+    return metricsDataSupplier(chart.name, chart.metric, labelValues);
+  } else if (chart.histogram) {
+    return histogramDataSupplier(chart.histogram, labelValues);
+  }
+  return undefined;
+}

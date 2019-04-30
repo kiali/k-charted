@@ -5,7 +5,7 @@ import { AngleDoubleLeftIcon } from '@patternfly/react-icons';
 
 import { AllPromLabelsValues } from '../../types/Labels';
 import { DashboardModel, ChartModel } from '../../types/Dashboards';
-import { metricsDataSupplier, histogramDataSupplier } from '../../utils/victoryChartsUtils';
+import { getDataSupplier } from '../../utils/victoryChartsUtils';
 import KChart from './KChart';
 
 const expandedChartContainerStyle: React.CSSProperties = {
@@ -70,23 +70,13 @@ export class Dashboard extends React.Component<DashboardProps, {}> {
   }
 
   private renderChart(chart: ChartModel, expandHandler?: () => void) {
-    if (chart.metric) {
+    const dataSupplier = getDataSupplier(chart, this.props.labelValues);
+    if (dataSupplier) {
       return (
         <KChart
           key={chart.name}
-          chartName={chart.name}
-          unit={chart.unit}
-          dataSupplier={metricsDataSupplier(chart.name, chart.metric, this.props.labelValues)}
-          onExpandRequested={expandHandler}
-        />
-      );
-    } else if (chart.histogram) {
-      return (
-        <KChart
-          key={chart.name}
-          chartName={chart.name}
-          unit={chart.unit}
-          dataSupplier={histogramDataSupplier(chart.histogram, this.props.labelValues)}
+          chart={chart}
+          dataSupplier={dataSupplier}
           onExpandRequested={expandHandler}
         />
       );

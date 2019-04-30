@@ -3,10 +3,10 @@ import { LineChart, Icon } from 'patternfly-react';
 
 import { getFormatter } from '../../utils/formatter';
 import { C3ChartData } from '../../utils/c3ChartsUtils';
+import { ChartModel } from '../../types/Dashboards';
 
 type KChartProps = {
-  chartName: string;
-  unit: string;
+  chart: ChartModel;
   onExpandRequested?: () => void;
   dataSupplier: () => C3ChartData;
 };
@@ -20,25 +20,6 @@ const expandBlockStyle: React.CSSProperties = {
 
 class KChart extends React.Component<KChartProps> {
   private previousColumns: string[] = [];
-
-  get axisDefinition() {
-    return {
-      x: {
-        type: 'timeseries',
-        tick: {
-          fit: true,
-          count: 15,
-          multiline: false,
-          format: '%H:%M:%S'
-        }
-      },
-      y: {
-        tick: {
-          format: getFormatter(this.props.unit)
-        }
-      }
-    };
-  }
 
   onExpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -71,23 +52,67 @@ class KChart extends React.Component<KChartProps> {
     // Note: if any direct interaction is needed with the C3 chart,
     //  use "oninit" hook and reference "this" as the C3 chart object.
     //  see commented code
-    // const self = this;
+    const self = this;
     return (
-      <div key={this.props.chartName} style={{ height: '100%' }}>
+      <div key={this.props.chart.name} style={{ height: '100%' }}>
         {this.props.onExpandRequested && this.renderExpand()}
         <LineChart
           style={{ height: this.props.onExpandRequested ? height : '99%' }}
-          id={this.props.chartName}
-          title={{ text: this.props.chartName }}
+          id={this.props.chart.name}
+          title={{ text: this.props.chart.name }}
           data={data}
-          axis={this.axisDefinition}
+          axis={this.getAxisDefinition()}
           point={{ show: false }}
+          onresized={function(this: any) {
+            // Hack due to axis definition not being updated on resize
+            const scaleInfo = self.scaledAxisInfo();
+            this.config.axis_x_tick_count = scaleInfo.count;
+            this.config.axis_x_tick_format = scaleInfo.format;
+          }}
           // oninit={function(this: any) {
           //   self.chartRef = this;
           // }}
         />
       </div>
     );
+  }
+
+  private getAxisDefinition() {
+    const scaleInfo = this.scaledAxisInfo();
+    return {
+      x: {
+        type: 'timeseries',
+        tick: {
+          fit: true,
+          count: scaleInfo.count,
+          multiline: false,
+          format: scaleInfo.format
+        }
+      },
+      y: {
+        tick: {
+          format: getFormatter(this.props.chart.unit)
+        }
+      }
+    };
+  }
+
+  private scaledAxisInfo() {
+    if ((window.innerWidth * this.props.chart.spans) / 12 < 450) {
+      return {
+        count: 5,
+        format: '%H:%M'
+      };
+    } else if ((window.innerWidth * this.props.chart.spans) / 12 < 600) {
+      return {
+        count: 10,
+        format: '%H:%M'
+      };
+    }
+    return {
+      count: 15,
+      format: '%H:%M:%S'
+    };
   }
 }
 

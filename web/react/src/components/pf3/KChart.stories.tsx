@@ -2,10 +2,11 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 import KChart from './KChart';
 import { TimeSeries } from '../../types/Metrics';
-import { metricsDataSupplier } from '../../utils/c3ChartsUtils';
+import { getDataSupplier } from '../../utils/c3ChartsUtils';
 
 import 'patternfly/dist/css/patternfly.css';
 import 'patternfly-react/dist/css/patternfly-react.css';
+import { ChartModel } from '../../types/Dashboards';
 
 const genSeries = (names: string[]): TimeSeries[] => {
   const t0 = 1556269000;
@@ -23,16 +24,28 @@ const genSeries = (names: string[]): TimeSeries[] => {
   });
 }
 
+const empty: ChartModel = {
+  name: 'Test empty',
+  unit: 'bytes',
+  spans: 6,
+  metric: []
+};
+
+const withData: ChartModel = {
+  name: 'Test with data',
+  unit: 'bytes',
+  spans: 6,
+  metric: genSeries(['a', 'b', 'c'])
+};
+
 storiesOf('PF3 KChart', module)
   .add('empty', () => (
     <KChart
-      chartName="Test empty"
-      unit="bytes"
-      dataSupplier={metricsDataSupplier('Test empty', [], new Map())} />
+      chart={empty}
+      dataSupplier={getDataSupplier(empty, new Map())!} />
   ))
   .add('with data', () => (
     <KChart
-      chartName="Test with data"
-      unit="bytes"
-      dataSupplier={metricsDataSupplier('Test with data', genSeries(['a', 'b', 'c']), new Map())} />
+      chart={withData}
+      dataSupplier={getDataSupplier(withData, new Map())!} />
   )); 

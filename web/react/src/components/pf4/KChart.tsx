@@ -4,11 +4,11 @@ import { ExpandArrowsAltIcon } from '@patternfly/react-icons';
 import { VictoryTooltip } from 'victory';
 import { VictoryVoronoiContainer } from 'victory-voronoi-container';
 
+import { ChartModel } from '../../types/Dashboards';
 import { VictoryChartInfo } from '../../types/VictoryChartInfo';
 
 type KChartProps = {
-  chartName: string;
-  unit: string;
+  chart: ChartModel;
   onExpandRequested?: () => void;
   dataSupplier: () => VictoryChartInfo;
 };
@@ -21,27 +21,6 @@ const expandBlockStyle: React.CSSProperties = {
 };
 
 class KChart extends React.Component<KChartProps> {
-  // private previousColumns: string[] = [];
-
-  // get axisDefinition() {
-  //   return {
-  //     x: {
-  //       type: 'timeseries',
-  //       tick: {
-  //         fit: true,
-  //         count: 15,
-  //         multiline: false,
-  //         format: '%H:%M:%S'
-  //       }
-  //     },
-  //     y: {
-  //       tick: {
-  //         format: getFormatter(this.props.unit)
-  //       }
-  //     }
-  //   };
-  // }
-
   onExpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     this.props.onExpandRequested!();
@@ -57,25 +36,14 @@ class KChart extends React.Component<KChartProps> {
     );
   };
 
-  // checkUnload(data: C3ChartData) {
-  //   const newColumns = data.columns.map(c => c[0] as string);
-  //   const diff = this.previousColumns.filter(col => !newColumns.includes(col));
-  //   if (diff.length > 0) {
-  //     data.unload = diff;
-  //   }
-  //   this.previousColumns = newColumns;
-  // }
-
   render() {
     const data = this.props.dataSupplier();
-    // this.checkUnload(data);
-    // const height = 350;
     return (
-      <div key={this.props.chartName} style={{ height: '100%', display: 'flex-inline' }}>
+      <div key={this.props.chart.name} style={{ height: '100%', display: 'flex-inline' }}>
         {this.props.onExpandRequested && this.renderExpand()}
         <div style={{ width: 450, height: 360 }}>
           <div>
-            <Chart theme={ChartTheme.light.multi} name={this.props.chartName}
+            <Chart theme={ChartTheme.light.multi} name={this.props.chart.name}
               containerComponent={
                 <VictoryVoronoiContainer voronoiDimension="x"
                   labels={(d: ChartLineProps) => d.name + ': ' + d.y}
@@ -94,7 +62,7 @@ class KChart extends React.Component<KChartProps> {
           <div className="chart-legend">
             <ChartLegend
               data={data.legend}
-              title={this.props.chartName}
+              title={this.props.chart.name}
               height={50}
               theme={ChartTheme.light.multi}
             />
