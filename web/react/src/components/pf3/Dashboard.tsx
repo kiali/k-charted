@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { style } from 'typestyle';
 import { Col, Icon, Row } from 'patternfly-react';
 
 import { AllPromLabelsValues } from '../../types/Labels';
@@ -6,14 +7,14 @@ import { DashboardModel, ChartModel } from '../../types/Dashboards';
 import { getDataSupplier } from '../../utils/c3ChartsUtils';
 import KChart from './KChart';
 
-const expandedChartContainerStyle: React.CSSProperties = {
+const expandedChartContainerStyle = style({
   height: 'calc(100vh - 248px)'
-};
+});
 
-const expandedChartBackLinkStyle: React.CSSProperties = {
-  marginTop: '-1.7em',
+const expandedChartBackLinkStyle = style({
+  marginTop: '5px',
   textAlign: 'right'
-};
+});
 
 type Props = {
   dashboard: DashboardModel;
@@ -38,7 +39,7 @@ export class Dashboard extends React.Component<Props, State> {
     if (this.state.expandedChart) {
       return (
         <>
-          <h3 style={expandedChartBackLinkStyle}>
+          <h3 className={expandedChartBackLinkStyle}>
             <a href="#" onClick={this.unexpandHandler}>
               <Icon name="angle-double-left" /> View all metrics
             </a>
@@ -61,7 +62,7 @@ export class Dashboard extends React.Component<Props, State> {
   private renderExpandedChart(chartKey: string) {
     const chart = this.props.dashboard.charts.find(c => c.name === chartKey);
     if (chart) {
-      return <div style={expandedChartContainerStyle}>{this.renderChart(chart)}</div>;
+      return <div className={expandedChartContainerStyle}>{this.renderChart(chart)}</div>;
     }
     return undefined;
   }
