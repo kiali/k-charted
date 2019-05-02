@@ -16,10 +16,13 @@ gobuild:
 reactbuild:
 	cd web/react && yarn build
 
-test: gotest
+test: gotest reacttest
 
 gotest:
 	go test ./...
+
+reacttest:
+	cd web/react && yarn test
 
 lint: golint
 

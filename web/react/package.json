@@ -45,6 +45,7 @@
   },
   "scripts": {
     "build": "tsc -p .",
+    "test": "jest",
     "storybook": "start-storybook"
   },
   "eslintConfig": {
