@@ -1,0 +1,20 @@
+matrix:
+  include:
+  - language: go
+    go:
+    - 1.9.4
+    # install:
+    # - make gometalinter-install
+    script:
+    - make gobuild gotest
+
+  - language: node_js
+    node_js:
+    - '10'
+    cache:
+      yarn: true
+      directories:
+      - node_modules
+    install: cd web/react && yarn --frozen-lockfile --non-interactive || (echo 'package.json is not in sync with yarn.lock, check that you include yarn.lock' && false)
+    script:
+    - yarn build

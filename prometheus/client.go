@@ -102,7 +102,7 @@ func (in *Client) fetchRange(query string, bounds v1.Range) Metric {
 	case model.ValMatrix:
 		return Metric{Matrix: result.(model.Matrix)}
 	}
-	return Metric{Err: fmt.Errorf("Invalid query, matrix expected: %s", query)}
+	return Metric{Err: fmt.Errorf("invalid query, matrix expected: %s", query)}
 }
 
 // GetMetricsForLabels returns a list of metrics existing for the provided labels set
