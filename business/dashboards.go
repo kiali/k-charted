@@ -36,7 +36,7 @@ func (in *DashboardsService) prom() (prometheus.ClientInterface, error) {
 	if in.promClient == nil {
 		client, err := prometheus.NewClient(in.config.PrometheusURL)
 		if err != nil {
-			return nil, fmt.Errorf("Cannot initialize Prometheus Client: %v", err)
+			return nil, fmt.Errorf("cannot initialize Prometheus Client: %v", err)
 		}
 		in.promClient = client
 	}
@@ -48,7 +48,7 @@ func (in *DashboardsService) k8s() (kubernetes.ClientInterface, error) {
 	if in.k8sClient == nil {
 		client, err := kubernetes.NewClient()
 		if err != nil {
-			return nil, fmt.Errorf("Cannot initialize Kubernetes Client: %v", err)
+			return nil, fmt.Errorf("cannot initialize Kubernetes Client: %v", err)
 		}
 		in.k8sClient = client
 	}
@@ -118,7 +118,7 @@ func (in *DashboardsService) loadRawDashboardResources(namespace string) (map[st
 func (in *DashboardsService) loadAndResolveDashboardResource(namespace, template string, loaded map[string]bool) (*v1alpha1.MonitoringDashboard, error) {
 	// Circular dependency check
 	if _, ok := loaded[template]; ok {
-		return nil, fmt.Errorf("Cannot load dashboard %s due to circular dependency detected. Already loaded dependencies: %v", template, loaded)
+		return nil, fmt.Errorf("cannot load dashboard %s due to circular dependency detected. Already loaded dependencies: %v", template, loaded)
 	}
 	loaded[template] = true
 	dashboard, err := in.loadRawDashboardResource(namespace, template)
@@ -229,7 +229,7 @@ func (in *DashboardsService) convertHistogram(from prometheus.Histogram, name st
 
 func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) []*model.SampleStream {
 	if from.Err != nil {
-		in.errorf("Error in metric %s: %v", name, from.Err)
+		in.errorf("error in metric %s: %v", name, from.Err)
 		return []*model.SampleStream{}
 	}
 	return model.ConvertMatrix(from.Matrix)
@@ -256,7 +256,7 @@ func (in *DashboardsService) buildRuntimesList(namespace string, templatesNames 
 			defer wg.Done()
 			dashboard, err := in.loadRawDashboardResource(namespace, tpl)
 			if err != nil {
-				in.errorf("Cannot get dashboard %s in namespace %s. Error was: %v", tpl, namespace, err)
+				in.errorf("cannot get dashboard %s in namespace %s. Error was: %v", tpl, namespace, err)
 			} else {
 				dashboards[i] = dashboard
 			}
@@ -284,7 +284,7 @@ func (in *DashboardsService) fetchMetricNames(namespace, app, version string) []
 	labels := in.buildLabels(namespace, app, version)
 	metrics, err := promClient.GetMetricsForLabels([]string{labels})
 	if err != nil {
-		in.errorf("Runtimes discovery failed, cannot load metrics for labels: %s. Error was: %v", labels, err)
+		in.errorf("runtimes discovery failed, cannot load metrics for labels: %s. Error was: %v", labels, err)
 	}
 	return metrics
 }
@@ -300,7 +300,7 @@ func (in *DashboardsService) discoverRuntimesList(namespace, app, version string
 
 	allDashboards, err := in.loadRawDashboardResources(namespace)
 	if err != nil {
-		in.errorf("Runtimes discovery failed, cannot load dashboards in namespace %s. Error was: %v", namespace, err)
+		in.errorf("runtimes discovery failed, cannot load dashboards in namespace %s. Error was: %v", namespace, err)
 		return []model.Runtime{}
 	}
 
