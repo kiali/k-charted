@@ -24,7 +24,7 @@ class KChart extends React.Component<KChartProps> {
   onExpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     this.props.expandHandler!();
-  };
+  }
 
   renderExpand = () => {
     return (
@@ -34,7 +34,7 @@ class KChart extends React.Component<KChartProps> {
         </a>
       </div>
     );
-  };
+  }
 
   checkUnload(data: C3ChartData) {
     const newColumns = data.columns.map(c => c[0] as string);

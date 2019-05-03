@@ -39,12 +39,16 @@
     "react-dom": "~16.8.6",
     "react-scripts": "3.0.0",
     "ts-jest": "~24.0.2",
+    "tslint": "~5.16.0",
+    "tslint-no-circular-imports": "~0.6.2",
+    "tslint-react": "^4.0.0",
     "typescript": "3.4.5",
     "typestyle": "~2.0.2",
     "victory-voronoi-container": "~32.2.0"
   },
   "scripts": {
     "build": "tsc -p .",
+    "lint": "tslint --project ./tsconfig.json",
     "test": "jest",
     "storybook": "start-storybook"
   },

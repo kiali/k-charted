@@ -30,4 +30,4 @@ golint:
 	golangci-lint run
 
 reactlint:
-	@echo "reactlint not implemented yet"
+	cd web/react && yarn lint

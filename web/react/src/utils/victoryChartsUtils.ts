@@ -57,4 +57,4 @@ export const getDataSupplier = (chart: ChartModel, labelValues: AllPromLabelsVal
     return histogramDataSupplier(chart.histogram, labelValues);
   }
   return undefined;
-}
+};

@@ -1,5 +1,5 @@
-import { TimeSeries, Histogram } from "./Metrics";
-import { PromLabel, LabelDisplayName } from "./Labels";
+import { TimeSeries, Histogram } from './Metrics';
+import { PromLabel, LabelDisplayName } from './Labels';
 
 export interface DashboardModel {
   title: string;
