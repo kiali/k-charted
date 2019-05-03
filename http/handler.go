@@ -25,24 +25,24 @@ func DashboardHandler(conf config.Config) func(w http.ResponseWriter, r *http.Re
 		params := model.DashboardQuery{Namespace: namespace, App: app}
 		err := ExtractDashboardQueryParams(r, &params)
 		if err != nil {
-			respondWithError(w, http.StatusBadRequest, err.Error())
+			respondWithError(conf, w, http.StatusBadRequest, err.Error())
 			return
 		}
 
 		dashboard, err := svc.GetDashboard(params, template)
 		if err != nil {
 			if errors.IsNotFound(err) {
-				respondWithError(w, http.StatusNotFound, err.Error())
+				respondWithError(conf, w, http.StatusNotFound, err.Error())
 			} else {
-				respondWithError(w, http.StatusInternalServerError, err.Error())
+				respondWithError(conf, w, http.StatusInternalServerError, err.Error())
 			}
 			return
 		}
-		respondWithJSON(w, http.StatusOK, dashboard)
+		respondWithJSON(conf, w, http.StatusOK, dashboard)
 	}
 }
 
-func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+func respondWithJSON(conf config.Config, w http.ResponseWriter, code int, payload interface{}) {
 	response, err := json.Marshal(payload)
 	if err != nil {
 		response, _ = json.Marshal(map[string]string{"error": err.Error()})
@@ -51,9 +51,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(response)
+	_, err = w.Write(response)
+	if err != nil {
+		conf.Errorf("could not write response: %v", err)
+	}
 }
 
-func respondWithError(w http.ResponseWriter, code int, message string) {
-	respondWithJSON(w, code, map[string]string{"error": message})
+func respondWithError(conf config.Config, w http.ResponseWriter, code int, message string) {
+	respondWithJSON(conf, w, code, map[string]string{"error": message})
 }

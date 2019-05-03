@@ -24,13 +24,10 @@ gotest:
 reacttest:
 	cd web/react && yarn test
 
-lint: golint
+lint: golint reactlint
 
 golint:
-	gometalinter --disable-all --enable=vet --enable=vetshadow --enable=varcheck --enable=structcheck \
-	--enable=ineffassign --enable=unconvert --enable=goimports -enable=gosimple --enable=staticcheck \
-	--enable=nakedret --tests  --vendor ./...
+	golangci-lint run
 
-gometalinter-install:
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
+reactlint:
+	@echo "reactlint not implemented yet"
