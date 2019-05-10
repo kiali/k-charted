@@ -1,6 +1,5 @@
 {
   "extends": ["tslint-react", "tslint-no-circular-imports"],
-  "defaultSeverity": "warning",
   "rules": {
     "align": [true, "parameters", "statements"],
     "ban": [true, "parseInt", "parseFloat"],
