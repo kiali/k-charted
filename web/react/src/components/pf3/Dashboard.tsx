@@ -93,11 +93,11 @@ export class Dashboard extends React.Component<Props, State> {
   private expandHandler = (chartKey: string): void => {
     this.setState({ expandedChart: chartKey });
     this.props.expandHandler(chartKey);
-  };
+  }
 
   private unexpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     this.setState({ expandedChart: undefined });
     this.props.expandHandler();
-  };
+  }
 }

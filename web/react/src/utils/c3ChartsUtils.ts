@@ -23,7 +23,7 @@ const histogramToC3Columns = (histogram: Histogram) => {
     series = series.concat(statSeries);
   });
   return series;
-}
+};
 
 const toC3Columns = (matrix?: TimeSeries[], title?: string) => {
   if (!matrix || matrix.length === 0) {
@@ -72,4 +72,4 @@ export const getDataSupplier = (chart: ChartModel, labelValues: AllPromLabelsVal
     return histogramDataSupplier(chart.histogram, labelValues);
   }
   return undefined;
-}
+};

@@ -1,4 +1,4 @@
-import { getFormatter } from "../formatter";
+import { getFormatter } from '../formatter';
 
 describe('Formatter', () => {
   it('should format seconds', () => {

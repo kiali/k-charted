@@ -11,12 +11,8 @@ const withData = generateRandomMetricChart(['a', 'b', 'c']);
 
 storiesOf('PF3 KChart', module)
   .add('empty', () => (
-    <KChart
-      chart={empty}
-      dataSupplier={getDataSupplier(empty, new Map())!} />
+    <KChart chart={empty} dataSupplier={getDataSupplier(empty, new Map())!} />
   ))
   .add('with data', () => (
-    <KChart
-      chart={withData}
-      dataSupplier={getDataSupplier(withData, new Map())!} />
-  )); 
+    <KChart chart={withData} dataSupplier={getDataSupplier(withData, new Map())!} />
+  ));

@@ -24,7 +24,7 @@ class KChart extends React.Component<KChartProps> {
   onExpandHandler = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     this.props.expandHandler!();
-  };
+  }
 
   renderExpand = () => {
     return (
@@ -34,7 +34,7 @@ class KChart extends React.Component<KChartProps> {
         </a>
       </div>
     );
-  };
+  }
 
   render() {
     const data = this.props.dataSupplier();
@@ -47,13 +47,13 @@ class KChart extends React.Component<KChartProps> {
               containerComponent={
                 <VictoryVoronoiContainer voronoiDimension="x"
                   labels={(d: ChartLineProps) => `${d.name}: ${d.y}`}
-                  labelComponent={<VictoryTooltip cornerRadius={0} flyoutStyle={{fill: "white"}}/>}
+                  labelComponent={<VictoryTooltip cornerRadius={0} flyoutStyle={{fill: 'white'}}/>}
                 />
               }>
               <ChartGroup>
-                {data.series.map(line => {
+                {data.series.map((line, idx) => {
                   return (
-                    <ChartLine data={line} />
+                    <ChartLine key={'line-' + idx} data={line} />
                   );
                 })}
               </ChartGroup>

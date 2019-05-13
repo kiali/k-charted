@@ -22,7 +22,7 @@ export const getFormatter = (unit: string) => {
         return formatDataSI(val, unit);
     }
   };
-}
+};
 
 const formatDataSI = (val: number, suffix: string): string => {
   return formatData(val, 1000, ['k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']) + suffix;

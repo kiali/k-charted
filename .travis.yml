@@ -17,4 +17,4 @@ matrix:
       - node_modules
     install: cd web/react && yarn --frozen-lockfile --non-interactive || (echo 'package.json is not in sync with yarn.lock, check that you include yarn.lock' && false)
     script:
-    - yarn build && yarn test
+    - yarn build && yarn lint && yarn test

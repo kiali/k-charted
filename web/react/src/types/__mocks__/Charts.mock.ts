@@ -1,5 +1,5 @@
-import { ChartModel } from "../Dashboards";
-import { TimeSeries } from "../Metrics";
+import { ChartModel } from '../Dashboards';
+import { TimeSeries } from '../Metrics';
 
 const t0 = 1556802000;
 const increment = 60;
@@ -17,7 +17,7 @@ const genSeries = (names: string[]): TimeSeries[] => {
       labelSet: { lbl: name }
     };
   });
-}
+};
 
 export const generateRandomMetricChart = (names: string[]): ChartModel => {
   return {
@@ -26,7 +26,7 @@ export const generateRandomMetricChart = (names: string[]): ChartModel => {
     spans: 6,
     metric: genSeries(names)
   };
-}
+};
 
 export const empty: ChartModel = {
   name: 'Empty metric chart',
