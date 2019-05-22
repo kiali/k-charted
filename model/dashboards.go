@@ -22,6 +22,7 @@ type Chart struct {
 	Spans     int                        `json:"spans"`
 	Metric    []*SampleStream            `json:"metric"`
 	Histogram map[string][]*SampleStream `json:"histogram"`
+	Error     string                     `json:"error"`
 }
 
 func ConvertMatrix(from pmod.Matrix) []*SampleStream {

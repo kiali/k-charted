@@ -15,6 +15,7 @@ export interface ChartModel {
   spans: SpanValue;
   metric?: TimeSeries[];
   histogram?: Histogram;
+  error?: string;
 }
 
 export interface AggregationModel {
