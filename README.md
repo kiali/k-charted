@@ -8,13 +8,13 @@ Dashboards and Charts library for Kubernetes, to use with `MonitoringDashboard` 
 It consists in a Go library and a TypeScript / React library.
 The Go code:
 
-- Provides a service that loads dashboards from Kubernetes resources and fill them up with timeseries data from Prometheus.
-- Includes some helper to use as an HTTP endpoint handler
+- Provides a service that loads dashboards from custom Kubernetes resources and fill them up with timeseries data fetched from Prometheus.
+- Includes some helpers to use as an HTTP endpoint handler
 
 The TypeScript code:
 
 - Provides Dashboards as React components, with two available implementations: one using Patternfly 3 (ie. C3 charts), the other Patternfly 4 (ie. Victory charts).
-- The data model used for these components is exactly what is returned from Go.
+- Of course, the data model used for these components is exactly what is returned from Go. So no extra manipulation is required.
 
 ## Usage
 
