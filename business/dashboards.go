@@ -200,13 +200,13 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 					aggregator = chart.Aggregator
 				}
 				metric := promClient.FetchRange(chart.MetricName, labels, grouping, aggregator, &params.MetricsQuery)
-				filledCharts[idx].Metric = in.convertMetric(metric, chart.MetricName)
+				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, chart.MetricName)
 			} else if chart.DataType == v1alpha1.Rate {
 				metric := promClient.FetchRateRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
-				filledCharts[idx].Metric = in.convertMetric(metric, chart.MetricName)
+				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, chart.MetricName)
 			} else {
 				histo := promClient.FetchHistogramRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
-				filledCharts[idx].Histogram = in.convertHistogram(histo, chart.MetricName)
+				filledCharts[idx].Histogram, filledCharts[idx].Error = in.convertHistogram(histo, chart.MetricName)
 			}
 		}(i, item.Chart)
 	}
@@ -219,20 +219,24 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 	}, nil
 }
 
-func (in *DashboardsService) convertHistogram(from prometheus.Histogram, name string) map[string][]*model.SampleStream {
+func (in *DashboardsService) convertHistogram(from prometheus.Histogram, name string) (map[string][]*model.SampleStream, string) {
 	stats := make(map[string][]*model.SampleStream, len(from))
 	for k, v := range from {
-		stats[k] = in.convertMetric(v, name+"/"+k)
+		s, err := in.convertMetric(v, name+"/"+k)
+		if err != "" {
+			return nil, err
+		}
+		stats[k] = s
 	}
-	return stats
+	return stats, ""
 }
 
-func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) []*model.SampleStream {
+func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) ([]*model.SampleStream, string) {
 	if from.Err != nil {
 		in.errorf("error in metric %s: %v", name, from.Err)
-		return []*model.SampleStream{}
+		return []*model.SampleStream{}, from.Err.Error()
 	}
-	return model.ConvertMatrix(from.Matrix)
+	return model.ConvertMatrix(from.Matrix), ""
 }
 
 // GetCustomDashboardRefs finds all dashboard IDs and Titles associated to this app and add them to the model
