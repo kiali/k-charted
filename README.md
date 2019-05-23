@@ -2,6 +2,9 @@
 
 Dashboards and Charts library for Kubernetes, to use with `MonitoringDashboard` custom resources as [documented in Kiali](https://www.kiali.io/documentation/runtimes-monitoring/#_create_new_dashboards).
 
+![K-Charted in Kiali](https://i.imgur.com/za2jMS2.png)
+*K-Charted is used in Kiali to fetch Prometheus metrics and display them in a dashboard*
+
 It consists in a Go library and a TypeScript / React library.
 The Go code:
 
