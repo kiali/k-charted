@@ -1,13 +1,15 @@
 package model
 
-import "github.com/kiali/k-charted/prometheus"
+import (
+	"github.com/kiali/k-charted/prometheus"
+)
 
 // DashboardQuery holds query parameters for a dashboard query
 type DashboardQuery struct {
 	prometheus.MetricsQuery
 	Namespace         string
-	App               string
-	Version           string
+	LabelsFilters     map[string]string
+	AdditionalLabels  []Aggregation
 	RawDataAggregator string
 }
 

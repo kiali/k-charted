@@ -6,7 +6,7 @@ It consists in a Go library and a TypeScript / React library.
 The Go code:
 
 - Provides a service that loads dashboards from Kubernetes resources and fill them up with timeseries data from Prometheus.
-- Includes some helper to use as an HTTP endpoint handler to use with Gorilla / mux
+- Includes some helper to use as an HTTP endpoint handler
 
 The TypeScript code:
 
@@ -23,7 +23,6 @@ Using the provided HTTP handler:
 
 ```go
 import (
-  "github.com/gorilla/mux"
   "github.com/kiali/k-charted/config"
   khttp "github.com/kiali/k-charted/http"
   // ...

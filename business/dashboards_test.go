@@ -2,6 +2,7 @@ package business
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	pmodel "github.com/prometheus/common/model"
@@ -20,9 +21,13 @@ func setupService() (*DashboardsService, *kmock.ClientMock, *pmock.PromClientMoc
 	k8s := new(kmock.ClientMock)
 	prom := new(pmock.PromClientMock)
 	service := NewDashboardsService(config.Config{
-		GlobalNamespace:  "istio-system",
-		AppLabelName:     "APP",
-		VersionLabelName: "VERSION",
+		GlobalNamespace: "istio-system",
+		Errorf: func(s string, args ...interface{}) {
+			fmt.Printf(s+"\n", args...)
+		},
+		Tracef: func(s string, args ...interface{}) {
+			fmt.Printf(s+"\n", args...)
+		},
 	})
 	service.k8sClient = k8s
 	service.promClient = prom
@@ -39,7 +44,15 @@ func TestGetDashboard(t *testing.T) {
 	expectedLabels := "{namespace=\"my-namespace\",APP=\"my-app\"}"
 	query := model.DashboardQuery{
 		Namespace: "my-namespace",
-		App:       "my-app",
+		LabelsFilters: map[string]string{
+			"APP": "my-app",
+		},
+		AdditionalLabels: []model.Aggregation{
+			model.Aggregation{
+				Label:       "version",
+				DisplayName: "Version",
+			},
+		},
 	}
 	query.FillDefaults()
 	prom.On("FetchRateRange", "my_metric_1_1", expectedLabels, "", &query.MetricsQuery).Return(fakeCounter(10))
@@ -71,7 +84,9 @@ func TestGetDashboardFromKialiNamespace(t *testing.T) {
 	expectedLabels := "{namespace=\"my-namespace\",APP=\"my-app\"}"
 	query := model.DashboardQuery{
 		Namespace: "my-namespace",
-		App:       "my-app",
+		LabelsFilters: map[string]string{
+			"APP": "my-app",
+		},
 	}
 	query.FillDefaults()
 	prom.On("FetchRateRange", "my_metric_1_1", expectedLabels, "", &query.MetricsQuery).Return(fakeCounter(10))

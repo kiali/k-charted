@@ -3,8 +3,8 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 
-	"github.com/gorilla/mux"
 	"k8s.io/apimachinery/pkg/api/errors"
 
 	"github.com/kiali/k-charted/business"
@@ -13,33 +13,29 @@ import (
 )
 
 // DashboardHandler is the API handler to fetch runtime metrics to be displayed, related to a single app
-func DashboardHandler(conf config.Config) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		namespace := vars["namespace"]
-		app := vars["app"]
-		template := vars["template"]
+func DashboardHandler(queryParams url.Values, pathParams map[string]string, w http.ResponseWriter, conf config.Config) {
+	namespace := pathParams["namespace"]
+	dashboardName := pathParams["dashboard"]
 
-		svc := business.NewDashboardsService(conf)
+	svc := business.NewDashboardsService(conf)
 
-		params := model.DashboardQuery{Namespace: namespace, App: app}
-		err := ExtractDashboardQueryParams(r, &params)
-		if err != nil {
-			respondWithError(conf, w, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		dashboard, err := svc.GetDashboard(params, template)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				respondWithError(conf, w, http.StatusNotFound, err.Error())
-			} else {
-				respondWithError(conf, w, http.StatusInternalServerError, err.Error())
-			}
-			return
-		}
-		respondWithJSON(conf, w, http.StatusOK, dashboard)
+	params := model.DashboardQuery{Namespace: namespace}
+	err := ExtractDashboardQueryParams(queryParams, &params)
+	if err != nil {
+		respondWithError(conf, w, http.StatusBadRequest, err.Error())
+		return
 	}
+
+	dashboard, err := svc.GetDashboard(params, dashboardName)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			respondWithError(conf, w, http.StatusNotFound, err.Error())
+		} else {
+			respondWithError(conf, w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(conf, w, http.StatusOK, dashboard)
 }
 
 func respondWithJSON(conf config.Config, w http.ResponseWriter, code int, payload interface{}) {
@@ -52,7 +48,7 @@ func respondWithJSON(conf config.Config, w http.ResponseWriter, code int, payloa
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	_, err = w.Write(response)
-	if err != nil {
+	if err != nil && conf.Errorf != nil {
 		conf.Errorf("could not write response: %v", err)
 	}
 }

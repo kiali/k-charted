@@ -27,7 +27,13 @@ func NewDashboardsService(conf config.Config) DashboardsService {
 
 func (in *DashboardsService) errorf(format string, args ...interface{}) {
 	if in.config.Errorf != nil {
-		in.config.Errorf(format, args)
+		in.config.Errorf(format, args...)
+	}
+}
+
+func (in *DashboardsService) tracef(format string, args ...interface{}) {
+	if in.config.Tracef != nil {
+		in.config.Tracef(format, args...)
 	}
 }
 
@@ -61,6 +67,7 @@ func (in *DashboardsService) k8sGetDashboard(namespace, template string) (*v1alp
 	if err != nil {
 		return nil, err
 	}
+	in.tracef("load k8s dashboard '%s' in namespace '%s'", template, namespace)
 	return client.GetDashboard(namespace, template)
 }
 
@@ -70,6 +77,7 @@ func (in *DashboardsService) k8sGetDashboards(namespace string) ([]v1alpha1.Moni
 	if err != nil {
 		return nil, err
 	}
+	in.tracef("load all k8s dashboards in namespace '%s'", namespace)
 	return client.GetDashboards(namespace)
 }
 
@@ -174,16 +182,8 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 		return nil, err
 	}
 
-	aggLabels := model.ConvertAggregations(dashboard.Spec)
-	labels := in.buildLabels(params.Namespace, params.App, params.Version)
-	if params.Version == "" {
-		// For app-based dashboards, we automatically add a possible aggregation/grouping over versions
-		versionsAgg := model.Aggregation{
-			Label:       "version",
-			DisplayName: "Version",
-		}
-		aggLabels = append([]model.Aggregation{versionsAgg}, aggLabels...)
-	}
+	filters := in.buildLabels(params.Namespace, params.LabelsFilters)
+	aggLabels := append(params.AdditionalLabels, model.ConvertAggregations(dashboard.Spec)...)
 	grouping := strings.Join(params.ByLabels, ",")
 
 	wg := sync.WaitGroup{}
@@ -199,13 +199,13 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 				if chart.Aggregator != "" {
 					aggregator = chart.Aggregator
 				}
-				metric := promClient.FetchRange(chart.MetricName, labels, grouping, aggregator, &params.MetricsQuery)
+				metric := promClient.FetchRange(chart.MetricName, filters, grouping, aggregator, &params.MetricsQuery)
 				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, chart.MetricName)
 			} else if chart.DataType == v1alpha1.Rate {
-				metric := promClient.FetchRateRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				metric := promClient.FetchRateRange(chart.MetricName, filters, grouping, &params.MetricsQuery)
 				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, chart.MetricName)
 			} else {
-				histo := promClient.FetchHistogramRange(chart.MetricName, labels, grouping, &params.MetricsQuery)
+				histo := promClient.FetchHistogramRange(chart.MetricName, filters, grouping, &params.MetricsQuery)
 				filledCharts[idx].Histogram, filledCharts[idx].Error = in.convertHistogram(histo, chart.MetricName)
 			}
 		}(i, item.Chart)
@@ -240,13 +240,13 @@ func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) 
 }
 
 // GetCustomDashboardRefs finds all dashboard IDs and Titles associated to this app and add them to the model
-func (in *DashboardsService) GetCustomDashboardRefs(namespace, app, version string, uniqueRefsList []string) []model.Runtime {
+// Runs auto-discovery only if some filters are provided (so, to turn-off auto-discovery, just do not provide filters)
+func (in *DashboardsService) GetCustomDashboardRefs(namespace string, labelsFilters map[string]string, uniqueRefsList []string) []model.Runtime {
 	if len(uniqueRefsList) > 0 {
 		return in.buildRuntimesList(namespace, uniqueRefsList)
 	}
-	if app != "" {
-		// Discovery only works with proper "app" labelling
-		return in.discoverRuntimesList(namespace, app, version)
+	if len(labelsFilters) > 0 {
+		return in.discoverRuntimesList(namespace, labelsFilters)
 	}
 	return []model.Runtime{}
 }
@@ -279,13 +279,13 @@ func (in *DashboardsService) buildRuntimesList(namespace string, templatesNames 
 	return runtimes
 }
 
-func (in *DashboardsService) fetchMetricNames(namespace, app, version string) []string {
+func (in *DashboardsService) fetchMetricNames(namespace string, labelsFilters map[string]string) []string {
 	promClient, err := in.prom()
 	if err != nil {
 		return []string{}
 	}
 
-	labels := in.buildLabels(namespace, app, version)
+	labels := in.buildLabels(namespace, labelsFilters)
 	metrics, err := promClient.GetMetricsForLabels([]string{labels})
 	if err != nil {
 		in.errorf("runtimes discovery failed, cannot load metrics for labels: %s. Error was: %v", labels, err)
@@ -293,13 +293,15 @@ func (in *DashboardsService) fetchMetricNames(namespace, app, version string) []
 	return metrics
 }
 
-func (in *DashboardsService) discoverRuntimesList(namespace, app, version string) []model.Runtime {
+func (in *DashboardsService) discoverRuntimesList(namespace string, labelsFilters map[string]string) []model.Runtime {
+	in.tracef("starting runtimes discovery on namespace %s with filters [%v]", namespace, labelsFilters)
+
 	var metrics []string
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		metrics = in.fetchMetricNames(namespace, app, version)
+		metrics = in.fetchMetricNames(namespace, labelsFilters)
 	}()
 
 	allDashboards, err := in.loadRawDashboardResources(namespace)
@@ -371,10 +373,10 @@ func addDashboardToRuntimes(dashboard *v1alpha1.MonitoringDashboard, runtimes []
 	return runtimes
 }
 
-func (in *DashboardsService) buildLabels(namespace, app, version string) string {
-	labels := fmt.Sprintf(`{namespace="%s",%s="%s"`, namespace, in.config.AppLabelName, app)
-	if version != "" {
-		labels += fmt.Sprintf(`,%s="%s"`, in.config.VersionLabelName, version)
+func (in *DashboardsService) buildLabels(namespace string, labelsFilters map[string]string) string {
+	labels := fmt.Sprintf(`{namespace="%s"`, namespace)
+	for k, v := range labelsFilters {
+		labels += fmt.Sprintf(`,%s="%s"`, k, v)
 	}
 	labels += "}"
 	return labels

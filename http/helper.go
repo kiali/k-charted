@@ -2,19 +2,35 @@ package http
 
 import (
 	"errors"
-	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/kiali/k-charted/model"
 	"github.com/kiali/k-charted/prometheus"
 )
 
-func ExtractDashboardQueryParams(r *http.Request, q *model.DashboardQuery) error {
+func ExtractDashboardQueryParams(queryParams url.Values, q *model.DashboardQuery) error {
 	q.FillDefaults()
-	queryParams := r.URL.Query()
-	q.Version = queryParams.Get("version")
+	q.LabelsFilters = make(map[string]string)
+	filters := strings.Split(queryParams.Get("labelsFilters"), ",")
+	for _, rawFilter := range filters {
+		kvPair := strings.Split(rawFilter, ":")
+		if len(kvPair) == 2 {
+			q.LabelsFilters[strings.TrimSpace(kvPair[0])] = strings.TrimSpace(kvPair[1])
+		}
+	}
+	additionalLabels := strings.Split(queryParams.Get("additionalLabels"), ",")
+	for _, additionalLabel := range additionalLabels {
+		kvPair := strings.Split(additionalLabel, ":")
+		if len(kvPair) == 2 {
+			q.AdditionalLabels = append(q.AdditionalLabels, model.Aggregation{
+				Label:       strings.TrimSpace(kvPair[0]),
+				DisplayName: strings.TrimSpace(kvPair[1]),
+			})
+		}
+	}
 	op := queryParams.Get("rawDataAggregator")
 	// Explicit white-listing operators to prevent any kind of injection
 	// For a list of operators, see https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators
