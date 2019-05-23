@@ -12,7 +12,9 @@ import (
 	"github.com/kiali/k-charted/model"
 )
 
-// DashboardHandler is the API handler to fetch runtime metrics to be displayed, related to a single app
+// DashboardHandler is the API handler to fetch runtime metrics to be displayed.
+// It expects "namespace" and "dashboard" to be provided as path params. Label filters can be provided as query params
+// (see also: ExtractDashboardQueryParams)
 func DashboardHandler(queryParams url.Values, pathParams map[string]string, w http.ResponseWriter, conf config.Config) {
 	namespace := pathParams["namespace"]
 	dashboardName := pathParams["dashboard"]

@@ -15,6 +15,8 @@ The TypeScript code:
 
 ## Usage
 
+Full-minimal working example: https://github.com/jotak/k-charted-server
+
 ### Go
 
 This code must run in-cluster.
@@ -28,20 +30,24 @@ import (
   // ...
 )
 
+var cfg = config.Config{
+  GlobalNamespace:  "default",
+  PrometheusURL:    "http://prometheus",
+  Errorf:           log.Errorf,
+  Tracef:           log.Tracef,
+}
+
+func getDashboard(w http.ResponseWriter, r *http.Request) {
+	khttp.DashboardHandler(r.URL.Query(), mux.Vars(r), w, cfg)
+}
+
 func SetRoute() {
-  cfg := config.Config{
-    GlobalNamespace:  "default",
-    PrometheusURL:    "http://prometheus",
-    AppLabelName:     "app",
-    VersionLabelName: "version",
-    Errorf:           log.Errorf,
-  }
   r := mux.NewRouter()
-  r.HandleFunc("/api/namespaces/{namespace}/apps/{app}/customdashboard/{template}", khttp.DashboardHandler(cfg))
+  r.HandleFunc("/api/namespaces/{namespace}/dashboards/{dashboard}", getDashboard)
 }
 ```
 
-Or calling the dashboards service:
+Or alternatively, calling the dashboards service instead:
 
 ```go
 import (
@@ -55,9 +61,8 @@ import (
   cfg := config.Config{
     GlobalNamespace:  "default",
     PrometheusURL:    "http://prometheus",
-    AppLabelName:     "app",
-    VersionLabelName: "version",
     Errorf:           log.Errorf,
+    Tracef:           log.Tracef,
   }
 
   dashboardsService := dashboards.NewDashboardsService(cfg)
@@ -71,19 +76,30 @@ import (
 
 - **PrometheusURL**: URL where the Prometheus server can be reached.
 
-- **AppLabelName**: name/key of the label that identifies applications (ex: "app", "app.kubernetes.io/name" ...). See also https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/ .
-
-- **VersionLabelName**: name/key of the label that identifies application versions (ex: "version", "app.kubernetes.io/version" ...). See also https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/ .
-
 - **Errorf**: handler to an error logging function
+
+- **Tracef**: handler to a tracing logging function
 
 ### React (Javascript / TypeScript)
 
-(TODO)
+You can use the react components from `k-charted-react`. Example with `axios`:
 
-## Build
+```javascript
+  axios.get(`/namespaces/${this.state.namespace}/dashboards/${this.state.dashboardName}`).then(rs => {
+    this.setState({ dashboard: rs.data });
+  });
 
-### Initial setup
+  render() {
+    if (this.state.dashboard) {
+      return (<PF3Dashboard dashboard={this.state.dashboard} />)
+    }
+    return (<>Empty</>);
+  }
+```
+
+Check out `MetricsOption.ts` file to see how the dashboard can be tuned (filtering by labels, aggregations, etc.)
+
+## First build
 
 Go vendors are commited so you don't need to pull them first (unless you want to update them, in which case you can run `make godep`).
 
@@ -99,6 +115,8 @@ Install [*golangci-lint*](https://github.com/golangci/golangci-lint), example wi
 curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.16.0
 ```
 
+## Build
+
 To build/lint/test everything:
 
 ```bash
@@ -111,3 +129,45 @@ You can also build/lint/test only the Go code, or only the React code:
 make gobuild golint gotest
 make reactbuild reactlint reacttest
 ```
+
+## Development setup (e.g. with Kiali)
+
+One solution to easily work and test with Kiali is to setup Glide mirroring, and npm linking.
+
+Supposing your Kiali sources are in `/go/src/github.com/kiali/kiali`, and k-charted in `/go/src/github.com/kiali/k-charted`:
+
+```bash
+cd /go/src/github.com/kiali/kiali
+glide mirror set https://github.com/kiali/k-charted file:///go/src/github.com/kiali/k-charted
+
+# Then, update your dependencies. In Kiali:
+make dep-update
+```
+
+!! Do not commit the vendor directory of Kiali with mirror setup !!
+
+Similarly, you can use `yarn link` for the web UI side. Assuming your kiali-ui is in `/work/kiali-ui`:
+
+```bash
+cd /go/src/github.com/kiali/k-charted/web/react
+yarn link
+
+cd /work/kiali-ui
+yarn link k-charted-react
+```
+
+After testing, you should remove the mirror and link:
+
+```bash
+cd /go/src/github.com/kiali/kiali
+glide mirror remove https://github.com/kiali/k-charted
+
+cd /work/kiali-ui
+yarn unlink k-charted-react
+```
+
+## Contribute
+
+You're welcome!
+
+If you want to chat, come to the #kiali channel on IRC/Freenode.

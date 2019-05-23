@@ -3,6 +3,7 @@ import { Dashboard as PF3Dashboard } from './components/pf3/Dashboard';
 import { DashboardModel, ChartModel, AggregationModel } from './types/Dashboards';
 import { LabelDisplayName, AllPromLabelsValues, PromLabel, SingleLabelValues } from './types/Labels';
 import { TimeSeries } from './types/Metrics';
+import { Aggregator, MetricsQuery, DashboardQuery } from './types/MetricsOptions';
 
 export {
   PF4Dashboard,
@@ -14,5 +15,8 @@ export {
   AllPromLabelsValues,
   PromLabel,
   SingleLabelValues,
-  TimeSeries
+  TimeSeries,
+  Aggregator,
+  MetricsQuery,
+  DashboardQuery
 };
