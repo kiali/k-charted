@@ -1,6 +1,6 @@
 {
   "name": "k-charted-react",
-  "version": "0.1.0-rc6",
+  "version": "0.1.0-rc7",
   "description": "Dashboards and Charts library for Kubernetes",
   "repository": "https://github.com/kiali/k-charted",
   "author": "Red Hat",
