@@ -13,14 +13,7 @@ import (
 
 func ExtractDashboardQueryParams(queryParams url.Values, q *model.DashboardQuery) error {
 	q.FillDefaults()
-	q.LabelsFilters = make(map[string]string)
-	filters := strings.Split(queryParams.Get("labelsFilters"), ",")
-	for _, rawFilter := range filters {
-		kvPair := strings.Split(rawFilter, ":")
-		if len(kvPair) == 2 {
-			q.LabelsFilters[strings.TrimSpace(kvPair[0])] = strings.TrimSpace(kvPair[1])
-		}
-	}
+	q.LabelsFilters = extractLabelsFilters(queryParams.Get("labelsFilters"))
 	additionalLabels := strings.Split(queryParams.Get("additionalLabels"), ",")
 	for _, additionalLabel := range additionalLabels {
 		kvPair := strings.Split(additionalLabel, ":")
@@ -38,6 +31,18 @@ func ExtractDashboardQueryParams(queryParams url.Values, q *model.DashboardQuery
 		q.RawDataAggregator = op
 	}
 	return extractBaseMetricsQueryParams(queryParams, &q.MetricsQuery)
+}
+
+func extractLabelsFilters(rawString string) map[string]string {
+	labelsFilters := make(map[string]string)
+	rawFilters := strings.Split(rawString, ",")
+	for _, rawFilter := range rawFilters {
+		kvPair := strings.Split(rawFilter, ":")
+		if len(kvPair) == 2 {
+			labelsFilters[strings.TrimSpace(kvPair[0])] = strings.TrimSpace(kvPair[1])
+		}
+	}
+	return labelsFilters
 }
 
 func extractBaseMetricsQueryParams(queryParams url.Values, q *prometheus.MetricsQuery) error {

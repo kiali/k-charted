@@ -31,3 +31,6 @@ golint:
 
 reactlint:
 	cd web/react && yarn lint
+
+go: gobuild golint gotest
+react: reactbuild reactlint reacttest

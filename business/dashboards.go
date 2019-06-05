@@ -184,6 +184,10 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 
 	filters := in.buildLabels(params.Namespace, params.LabelsFilters)
 	aggLabels := append(params.AdditionalLabels, model.ConvertAggregations(dashboard.Spec)...)
+	if len(aggLabels) == 0 {
+		// Prevent null in json
+		aggLabels = []model.Aggregation{}
+	}
 	grouping := strings.Join(params.ByLabels, ",")
 
 	wg := sync.WaitGroup{}
@@ -239,14 +243,13 @@ func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) 
 	return model.ConvertMatrix(from.Matrix), ""
 }
 
-// GetCustomDashboardRefs finds all dashboard IDs and Titles associated to this app and add them to the model
-// Runs auto-discovery only if some filters are provided (so, to turn-off auto-discovery, just do not provide filters)
-func (in *DashboardsService) GetCustomDashboardRefs(namespace string, labelsFilters map[string]string, uniqueRefsList []string) []model.Runtime {
+// SearchExplicitDashboards will check annotations of all supplied pods to extract a unique list of dashboards
+//	Accepted annotations are "kiali.io/runtimes" and "kiali.io/dashboards"
+func (in *DashboardsService) SearchExplicitDashboards(namespace string, pods []model.Pod) []model.Runtime {
+	uniqueRefsList := extractUniqueDashboards(pods)
 	if len(uniqueRefsList) > 0 {
+		in.tracef("getting dashboards from refs list: %v", uniqueRefsList)
 		return in.buildRuntimesList(namespace, uniqueRefsList)
-	}
-	if len(labelsFilters) > 0 {
-		return in.discoverRuntimesList(namespace, labelsFilters)
 	}
 	return []model.Runtime{}
 }
@@ -293,7 +296,8 @@ func (in *DashboardsService) fetchMetricNames(namespace string, labelsFilters ma
 	return metrics
 }
 
-func (in *DashboardsService) discoverRuntimesList(namespace string, labelsFilters map[string]string) []model.Runtime {
+// DiscoverDashboards tries to discover dashboards based on existing metrics
+func (in *DashboardsService) DiscoverDashboards(namespace string, labelsFilters map[string]string) []model.Runtime {
 	in.tracef("starting runtimes discovery on namespace %s with filters [%v]", namespace, labelsFilters)
 
 	var metrics []string

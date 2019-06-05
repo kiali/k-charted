@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 
@@ -38,6 +39,36 @@ func DashboardHandler(queryParams url.Values, pathParams map[string]string, w ht
 		return
 	}
 	respondWithJSON(conf, w, http.StatusOK, dashboard)
+}
+
+// SearchDashboardsHandler is the API handler to search for all available dashboards on pods
+// It expects "namespace" to be provided as path param. Label filters can be provided as query params
+// (see also: ExtractDashboardQueryParams)
+func SearchDashboardsHandler(queryParams url.Values, pathParams map[string]string, w http.ResponseWriter, conf config.Config) {
+	namespace := pathParams["namespace"]
+	labels := queryParams.Get("labelsFilters")
+
+	var runtimes []model.Runtime
+	svc := business.NewDashboardsService(conf)
+	if conf.PodsLoader != nil {
+		pods, err := conf.PodsLoader(namespace, strings.Replace(labels, ":", "=", -1))
+		if err != nil {
+			if errors.IsNotFound(err) {
+				respondWithError(conf, w, http.StatusNotFound, err.Error())
+			} else {
+				respondWithError(conf, w, http.StatusInternalServerError, err.Error())
+			}
+			return
+		}
+		runtimes = svc.SearchExplicitDashboards(namespace, pods)
+	}
+
+	if len(runtimes) == 0 {
+		labelsMap := extractLabelsFilters(labels)
+		runtimes = svc.DiscoverDashboards(namespace, labelsMap)
+	}
+
+	respondWithJSON(conf, w, http.StatusOK, runtimes)
 }
 
 func respondWithJSON(conf config.Config, w http.ResponseWriter, code int, payload interface{}) {

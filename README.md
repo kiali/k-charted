@@ -69,8 +69,7 @@ import (
   }
 
   dashboardsService := dashboards.NewDashboardsService(cfg)
-  dashboard, err := dashboardsService.GetDashboard(model.DashboardQuery{Namespace: "my-namespace", App: "my-app"},
-    "my-dashboard-name")
+  dashboard, err := dashboardsService.GetDashboard(model.DashboardQuery{Namespace: "my-namespace"}, "my-dashboard-name")
 ```
 
 #### Config
@@ -79,9 +78,11 @@ import (
 
 - **PrometheusURL**: URL where the Prometheus server can be reached.
 
-- **Errorf**: handler to an error logging function
+- **Errorf**: optional handler to an error logging function.
 
-- **Tracef**: handler to a tracing logging function
+- **Tracef**: optional handler to a tracing logging function.
+
+- **PodsLoader**: optional pods supplier function, it enables reading dashboard names from pods annotations.
 
 ### React (Javascript / TypeScript)
 
@@ -100,7 +101,7 @@ You can use the react components from `k-charted-react`. Example with `axios`:
   }
 ```
 
-Check out `MetricsOption.ts` file to see how the dashboard can be tuned (filtering by labels, aggregations, etc.)
+Check out [`MetricsOption.ts`](https://github.com/kiali/k-charted/blob/master/web/react/src/types/MetricsOptions.ts) file to see how the dashboard can be tuned (filtering by labels, aggregations, etc.)
 
 ## First build
 
