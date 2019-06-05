@@ -1,5 +1,5 @@
 hash: 3b184330d71f85aa6b14c0c297ce0fc054c3dfdfd916ba3730cac865299741ab
-updated: 2019-05-02T13:15:35.594303484+02:00
+updated: 2019-06-05T12:29:59.154053317+02:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 782f4967f2dc4564575ca782fe2d04090b5faca8
@@ -16,8 +16,6 @@ imports:
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/google/gofuzz
   version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
-- name: github.com/gorilla/mux
-  version: c5c6c98bc25355028a63748a498942a6398ccd22
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/modern-go/concurrent
