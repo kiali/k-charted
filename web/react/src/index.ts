@@ -4,6 +4,7 @@ import { DashboardModel, ChartModel, AggregationModel } from './types/Dashboards
 import { LabelDisplayName, AllPromLabelsValues, PromLabel, SingleLabelValues } from './types/Labels';
 import { TimeSeries } from './types/Metrics';
 import { Aggregator, MetricsQuery, DashboardQuery } from './types/MetricsOptions';
+import { DashboardRef, Runtime } from './types/Runtimes';
 
 export {
   PF4Dashboard,
@@ -18,5 +19,7 @@ export {
   TimeSeries,
   Aggregator,
   MetricsQuery,
-  DashboardQuery
+  DashboardQuery,
+  DashboardRef,
+  Runtime
 };
