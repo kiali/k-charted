@@ -38,6 +38,7 @@
     "react-docgen-typescript-loader": "~3.1.0",
     "react-dom": "~16.8.6",
     "react-scripts": "3.0.0",
+    "seedrandom": "~3.0.1",
     "ts-jest": "~24.0.2",
     "tslint": "~5.16.0",
     "tslint-no-circular-imports": "~0.6.2",

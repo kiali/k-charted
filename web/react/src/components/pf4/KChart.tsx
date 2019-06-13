@@ -119,6 +119,7 @@ class KChart extends React.Component<KChartProps, State> {
           responsive={false}
           title={this.props.chart.name}
           themeColor={ChartThemeColor.multi}
+          width={this.state.width}
         />
       </div>
     );
