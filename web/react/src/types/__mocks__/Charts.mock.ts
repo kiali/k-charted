@@ -35,6 +35,14 @@ export const empty: ChartModel = {
   metric: []
 };
 
+export const error: ChartModel = {
+  name: 'Chart with error',
+  unit: 'bytes',
+  spans: 6,
+  metric: [],
+  error: 'Unable to fetch metrics'
+};
+
 export const metric: ChartModel = {
   name: 'Metric chart',
   unit: 'bytes',
