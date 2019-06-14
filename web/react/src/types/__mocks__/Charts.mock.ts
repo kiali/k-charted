@@ -1,30 +1,68 @@
 import { ChartModel } from '../Dashboards';
 import { TimeSeries } from '../Metrics';
+import seedrandom from 'seedrandom';
 
 const t0 = 1556802000;
 const increment = 60;
 
 const genSeries = (names: string[]): TimeSeries[] => {
   return names.map(name => {
-    const values: [number, number][] = [];
-    for (let i = 0; i < 10; i++) {
-      const x = t0 + increment * i;
-      const y = Math.floor(Math.random() * 50);
-      values.push([x, y]);
-    }
     return {
-      values: values,
+      values: genSingle(0, 50),
       labelSet: { lbl: name }
     };
   });
 };
 
-export const generateRandomMetricChart = (names: string[]): ChartModel => {
+const genSingle = (offset: number, entropy: number): [number, number][] => {
+  const values: [number, number][] = [];
+  for (let i = 0; i < 10; i++) {
+    const x = t0 + increment * i;
+    const y = offset + Math.floor(Math.random() * entropy);
+    values.push([x, y]);
+  }
+  return values;
+};
+
+export const generateRandomMetricChart = (title: string, names: string[], seed?: string): ChartModel => {
+  if (seed) {
+    seedrandom(seed, { global: true });
+  }
   return {
-    name: 'Random metric chart',
+    name: title,
     unit: 'bytes',
     spans: 6,
     metric: genSeries(names)
+  };
+};
+
+export const generateRandomHistogramChart = (title: string, seed?: string): ChartModel => {
+  if (seed) {
+    seedrandom(seed, { global: true });
+  }
+  const histo = {
+    avg: [{
+      values: genSingle(0, 50),
+      labelSet: {}
+    }],
+    '0.5': [{
+      values: genSingle(25, 15),
+      labelSet: {}
+    }],
+    '0.95': [{
+      values: genSingle(80, 25),
+      labelSet: {}
+    }],
+    '0.99': [{
+      values: genSingle(90, 100),
+      labelSet: {}
+    }]
+  };
+  return {
+    name: title,
+    unit: 'bitrate',
+    spans: 6,
+    histogram: histo
   };
 };
 
@@ -33,6 +71,14 @@ export const empty: ChartModel = {
   unit: 'bytes',
   spans: 6,
   metric: []
+};
+
+export const error: ChartModel = {
+  name: 'Chart with error',
+  unit: 'bytes',
+  spans: 6,
+  metric: [],
+  error: 'Unable to fetch metrics'
 };
 
 export const metric: ChartModel = {
