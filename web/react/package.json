@@ -1,6 +1,6 @@
 {
   "name": "k-charted-react",
-  "version": "0.1.0-rc9",
+  "version": "0.1.0",
   "description": "Dashboards and Charts library for Kubernetes",
   "repository": "https://github.com/kiali/k-charted",
   "author": "Red Hat",
@@ -44,8 +44,7 @@
     "tslint-no-circular-imports": "~0.6.2",
     "tslint-react": "^4.0.0",
     "typescript": "3.4.5",
-    "typestyle": "~2.0.2",
-    "victory-voronoi-container": "~32.2.0"
+    "typestyle": "~2.0.2"
   },
   "scripts": {
     "build": "tsc -p .",
