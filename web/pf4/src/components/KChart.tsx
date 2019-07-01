@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { style } from 'typestyle';
+import { Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { Chart, ChartArea, ChartGroup, ChartLegend, ChartVoronoiContainer, ChartThemeColor } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
@@ -100,6 +101,9 @@ class KChart extends React.Component<KChartProps, State> {
     const container = <ChartVoronoiContainer labels={dp => `${dp.name}: ${dp.y}`} />;
     return (
       <div ref={this.containerRef}>
+        <TextContent>
+          <Text component={TextVariants.h4} style={{textAlign: 'center'}}>{this.props.chart.name}</Text>
+        </TextContent>
         <div className="area-chart-overflow">
           <Chart containerComponent={container}
             height={height}
@@ -117,7 +121,6 @@ class KChart extends React.Component<KChartProps, State> {
           data={data.legend}
           height={legendHeight}
           responsive={false}
-          title={this.props.chart.name}
           themeColor={ChartThemeColor.multi}
           width={this.state.width}
         />
