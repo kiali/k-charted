@@ -13,7 +13,7 @@ const toVCLines = (ts: TimeSeries[]): VictoryChartInfo => {
         return {
           name: line.name!,
           x: new Date(dp[0] * 1000) as any,
-          y: dp[1]
+          y: Number(dp[1])
         };
       });
     })
