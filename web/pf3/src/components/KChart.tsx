@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { style } from 'typestyle';
 import { Icon, LineChart } from 'patternfly-react';
+import { format as d3Format } from 'd3-format';
 
-import { getFormatter } from '../utils/formatter';
 import { C3ChartData } from '../utils/c3ChartsUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
+import { getFormatter } from '../../../common/utils/formatter';
 
 const chartHeight = 350;
 
@@ -151,7 +152,7 @@ class KChart extends React.Component<KChartProps> {
       },
       y: {
         tick: {
-          format: getFormatter(this.props.chart.unit)
+          format: getFormatter(d3Format, this.props.chart.unit)
         }
       }
     };

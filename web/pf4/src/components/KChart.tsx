@@ -1,11 +1,15 @@
 import * as React from 'react';
 import { style } from 'typestyle';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
-import { Chart, ChartArea, ChartGroup, ChartLegend, ChartVoronoiContainer, ChartThemeColor } from '@patternfly/react-charts';
+import { Chart, ChartArea, ChartGroup, ChartLegend, ChartVoronoiContainer, ChartThemeColor, ChartAxis, ChartTooltip } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
+import { format as d3Format } from 'd3-format';
 
 import { ChartModel } from '../../../common/types/Dashboards';
+import { getFormatter } from '../../../common/utils/formatter';
 import { VictoryChartInfo } from '../types/VictoryChartInfo';
+
+const { VictoryPortal, VictoryLabel } = require('victory');
 
 type KChartProps = {
   chart: ChartModel;
@@ -97,8 +101,24 @@ class KChart extends React.Component<KChartProps, State> {
       return this.renderEmpty();
     }
 
+    const formatter = getFormatter(d3Format, this.props.chart.unit);
     const height = this.props.chartHeight || defaultChartHeight;
-    const container = <ChartVoronoiContainer labels={dp => `${dp.name}: ${dp.y}`} />;
+    // rendering in portal doesn't seem to work
+    // would be useful to make tooltip displayed above everything
+    const tooltip = (
+      <ChartTooltip
+        renderInPortal={true}
+        style={{ stroke: 'none' }}
+      />
+    );
+    const container = (
+      <ChartVoronoiContainer
+        labels={dp => `${dp.name}: ${formatter(dp.y)}`}
+        labelComponent={tooltip}
+      />
+    );
+    const scaleInfo = this.scaledAxisInfo(data);
+
     return (
       <div ref={this.containerRef}>
         <TextContent>
@@ -110,6 +130,16 @@ class KChart extends React.Component<KChartProps, State> {
             width={this.state.width}
             themeColor={ChartThemeColor.multi}
             scale={{x: 'time'}}>
+            <ChartAxis
+              tickCount={scaleInfo.count}
+              style={{ tickLabels: {fontSize: 12, padding: 2} }}
+            />
+            <ChartAxis
+              tickLabelComponent={<VictoryPortal><VictoryLabel/></VictoryPortal>}
+              dependentAxis={true}
+              tickFormat={formatter}
+              style={{ tickLabels: {fontSize: 12, padding: 2} }}
+            />
             <ChartGroup>
               {data.series.map((line, idx) => {
                 return (<ChartArea key={'line-' + idx} data={line} />);
@@ -160,6 +190,25 @@ class KChart extends React.Component<KChartProps, State> {
         </div>
       </div>
     );
+  }
+
+  private scaledAxisInfo(data: VictoryChartInfo) {
+    const ticks = Math.max(...(data.series.map(s => s.length)));
+    if ((window.innerWidth * this.props.chart.spans) / 12 < 500) {
+      return {
+        count: Math.min(5, ticks),
+        format: '%H:%M'
+      };
+    } else if ((window.innerWidth * this.props.chart.spans) / 12 < 700) {
+      return {
+        count: Math.min(10, ticks),
+        format: '%H:%M'
+      };
+    }
+    return {
+      count: Math.min(15, ticks),
+      format: '%H:%M:%S'
+    };
   }
 }
 
