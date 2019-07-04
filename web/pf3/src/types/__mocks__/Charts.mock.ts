@@ -6,19 +6,21 @@ const t0 = 1556802000;
 const increment = 60;
 
 const genSeries = (names: string[]): TimeSeries[] => {
-  return names.map(name => {
+  return names.map((name, idx) => {
+    // Set some special x ranges for some timeseries
+    const xrange: [number, number] = idx === 0 ? [1, 10] : idx === 2 ? [2, 8] : [0, 10];
     return {
-      values: genSingle(0, 50),
+      values: genSingle(xrange, 0, 50),
       labelSet: { lbl: name }
     };
   });
 };
 
-const genSingle = (offset: number, entropy: number): [number, number][] => {
+const genSingle = (xrange: [number, number], yoffset: number, entropy: number): [number, number][] => {
   const values: [number, number][] = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = xrange[0]; i < xrange[1]; i++) {
     const x = t0 + increment * i;
-    const y = offset + Math.floor(Math.random() * entropy);
+    const y = yoffset + Math.floor(Math.random() * entropy);
     values.push([x, y]);
   }
   return values;
@@ -42,19 +44,19 @@ export const generateRandomHistogramChart = (title: string, seed?: string): Char
   }
   const histo = {
     avg: [{
-      values: genSingle(0, 50),
+      values: genSingle([0, 10], 0, 50),
       labelSet: {}
     }],
     '0.5': [{
-      values: genSingle(25, 15),
+      values: genSingle([0, 10], 25, 15),
       labelSet: {}
     }],
     '0.95': [{
-      values: genSingle(80, 25),
+      values: genSingle([0, 10], 80, 25),
       labelSet: {}
     }],
     '0.99': [{
-      values: genSingle(90, 100),
+      values: genSingle([0, 10], 90, 100),
       labelSet: {}
     }]
   };
