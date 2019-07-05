@@ -86,7 +86,7 @@ import (
 
 ### React (Javascript / TypeScript)
 
-You can use the one of the PatternFly implementations by importing `k-charted-pf3` or `k-charted-pf4`. Example with `axios`:
+You can use the one of the PatternFly implementations by importing `@kiali/k-charted-pf3` or `@kiali/k-charted-pf4`. Example with `axios`:
 
 ```javascript
   axios.get(`/namespaces/${this.state.namespace}/dashboards/${this.state.dashboardName}`).then(rs => {
@@ -154,7 +154,7 @@ cd /go/src/github.com/kiali/k-charted/web/pf3
 yarn link
 
 cd /work/kiali-ui
-yarn link k-charted-pf3
+yarn link @kiali/k-charted-pf3
 ```
 
 After testing, you should remove the mirror and link:
@@ -164,7 +164,7 @@ cd /go/src/github.com/kiali/kiali
 glide mirror remove https://github.com/kiali/k-charted
 
 cd /work/kiali-ui
-yarn unlink k-charted-pf3
+yarn unlink @kiali/k-charted-pf3
 ```
 
 ## Contribute
