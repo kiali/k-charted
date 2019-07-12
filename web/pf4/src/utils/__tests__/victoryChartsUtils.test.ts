@@ -1,5 +1,6 @@
 import { getDataSupplier } from '../victoryChartsUtils';
 import { empty, histogram, metric } from '../../types/__mocks__/Charts.mock';
+import { ChartModel } from '../..';
 
 const t0 = new Date('2019-05-02T13:00:00.000Z');
 const t1 = new Date('2019-05-02T13:01:00.000Z');
@@ -31,5 +32,21 @@ describe('Victory Charts Utils', () => {
     expect(res.series[1].map(s => s.x)).toEqual([t0, t1, t2]);
     expect(res.series[1].map(s => s.y)).toEqual([150.4, 148.2, 142]);
     expect(res.series[1].map(s => s.name)).toEqual(['quantile 0.99', 'quantile 0.99', 'quantile 0.99']);
+  });
+
+  it('should ignore NaN values', () => {
+    const withNaN: ChartModel = {
+      name: '',
+      unit: '',
+      spans: 6,
+      metric: [{
+        values: [[1, 1], [2, 2], [3, NaN], [4, 4]],
+        labelSet: {}
+      }]
+    };
+
+    const res = getDataSupplier(withNaN, new Map())!();
+    expect(res.series).toHaveLength(1);
+    expect(res.series[0].map(s => s.y)).toEqual([1, 2, 4]);
   });
 });
