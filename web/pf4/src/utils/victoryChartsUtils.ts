@@ -15,7 +15,7 @@ const toVCLines = (ts: TimeSeries[]): VictoryChartInfo => {
           x: new Date(dp[0] * 1000) as any,
           y: Number(dp[1])
         };
-      });
+      }).filter(dp => !isNaN(dp.y));
     })
   };
 };
