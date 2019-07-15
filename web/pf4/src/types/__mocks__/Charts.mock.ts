@@ -1,4 +1,4 @@
-import { ChartModel } from '../../../../common/types/Dashboards';
+import { ChartModel, SpanValue } from '../../../../common/types/Dashboards';
 import { TimeSeries } from '../../../../common/types/Metrics';
 import seedrandom from 'seedrandom';
 
@@ -24,44 +24,44 @@ const genSingle = (offset: number, entropy: number): [number, number][] => {
   return values;
 };
 
-export const generateRandomMetricChart = (title: string, names: string[], seed?: string): ChartModel => {
+export const generateRandomMetricChart = (title: string, names: string[], spans: SpanValue, seed?: string): ChartModel => {
   if (seed) {
     seedrandom(seed, { global: true });
   }
   return {
     name: title,
     unit: 'bytes',
-    spans: 6,
+    spans: spans,
     metric: genSeries(names)
   };
 };
 
-export const generateRandomHistogramChart = (title: string, seed?: string): ChartModel => {
+export const generateRandomHistogramChart = (title: string, spans: SpanValue, seed?: string): ChartModel => {
   if (seed) {
     seedrandom(seed, { global: true });
   }
   const histo = {
-    avg: [{
-      values: genSingle(0, 50),
-      labelSet: {}
-    }],
-    '0.5': [{
-      values: genSingle(25, 15),
+    '0.99': [{
+      values: genSingle(90, 100),
       labelSet: {}
     }],
     '0.95': [{
       values: genSingle(80, 25),
       labelSet: {}
     }],
-    '0.99': [{
-      values: genSingle(90, 100),
+    '0.5': [{
+      values: genSingle(25, 15),
+      labelSet: {}
+    }],
+    avg: [{
+      values: genSingle(0, 50),
       labelSet: {}
     }]
   };
   return {
     name: title,
     unit: 'bitrate',
-    spans: 6,
+    spans: spans,
     histogram: histo
   };
 };

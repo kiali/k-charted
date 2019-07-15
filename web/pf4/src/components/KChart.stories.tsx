@@ -6,8 +6,8 @@ import { empty, error, generateRandomMetricChart, generateRandomHistogramChart }
 
 import '@patternfly/react-core/dist/styles/base.css';
 
-const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 'kchart-seed');
-const histogram = generateRandomHistogramChart('Random histogram chart', 'kchart-histo-seed');
+const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 12, 'kchart-seed');
+const histogram = generateRandomHistogramChart('Random histogram chart', 12, 'kchart-histo-seed');
 
 storiesOf('PF4 KChart', module)
   .add('with data', () => (
