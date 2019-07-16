@@ -5,7 +5,7 @@ import { filterAndNameMetric, filterAndNameHistogram } from '../../../common/uti
 import { ChartModel } from '../../../common/types/Dashboards';
 import { AllPromLabelsValues } from '../../../common/types/Labels';
 
-const toVCLines = (ts: TimeSeries[]): VictoryChartInfo => {
+const toVCLines = (ts: TimeSeries[], unit: string): VictoryChartInfo => {
   return {
     rawLegend: ts.map(line => line.name!),
     series: ts.map(line => {
@@ -13,20 +13,21 @@ const toVCLines = (ts: TimeSeries[]): VictoryChartInfo => {
         return {
           name: line.name!,
           x: new Date(dp[0] * 1000) as any,
-          y: Number(dp[1])
+          y: Number(dp[1]),
+          unit: unit
         };
       }).filter(dp => !isNaN(dp.y));
     })
   };
 };
 
-const histogramToVCLines = (histogram: Histogram): VictoryChartInfo => {
+const histogramToVCLines = (histogram: Histogram, unit: string): VictoryChartInfo => {
   // Flat-map histo_stat * series
   const stats = Object.keys(histogram);
   let series: ChartLineProps[][] = [];
   let legend: string[] = [];
   stats.forEach(statName => {
-    const innerInfo = toVCLines(histogram[statName]);
+    const innerInfo = toVCLines(histogram[statName], unit);
     series = series.concat(innerInfo.series);
     legend = legend.concat(innerInfo.rawLegend);
   });
@@ -36,25 +37,25 @@ const histogramToVCLines = (histogram: Histogram): VictoryChartInfo => {
   };
 };
 
-const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labelValues: AllPromLabelsValues): () => VictoryChartInfo => {
+const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labelValues: AllPromLabelsValues, unit: string): () => VictoryChartInfo => {
   return () => {
     const filtered = filterAndNameMetric(chartName, metrics, labelValues);
-    return toVCLines(filtered);
+    return toVCLines(filtered, unit);
   };
 };
 
-const histogramDataSupplier = (histogram: Histogram, labelValues: AllPromLabelsValues): () => VictoryChartInfo => {
+const histogramDataSupplier = (histogram: Histogram, labelValues: AllPromLabelsValues, unit: string): () => VictoryChartInfo => {
   return () => {
     const filtered = filterAndNameHistogram(histogram, labelValues);
-    return histogramToVCLines(filtered);
+    return histogramToVCLines(filtered, unit);
   };
 };
 
 export const getDataSupplier = (chart: ChartModel, labelValues: AllPromLabelsValues): (() => VictoryChartInfo) | undefined => {
   if (chart.metric) {
-    return metricsDataSupplier(chart.name, chart.metric, labelValues);
+    return metricsDataSupplier(chart.name, chart.metric, labelValues, chart.unit);
   } else if (chart.histogram) {
-    return histogramDataSupplier(chart.histogram, labelValues);
+    return histogramDataSupplier(chart.histogram, labelValues, chart.unit);
   }
   return undefined;
 };
