@@ -52,6 +52,9 @@ type MonitoringDashboardChart struct {
 	Name         string                           `json:"name"`
 	Unit         string                           `json:"unit"`
 	Spans        int                              `json:"spans"`
+	ChartType    *string                          `json:"chartType"`
+	Min          *int                             `json:"min"`
+	Max          *int                             `json:"max"`
 	MetricName   string                           `json:"metricName"`
 	DataType     string                           `json:"dataType"`   // DataType is either "raw", "rate" or "histogram"
 	Aggregator   string                           `json:"aggregator"` // Aggregator can be set for raw data. Ex: "sum", "avg". See https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators

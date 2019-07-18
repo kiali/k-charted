@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { style } from 'typestyle';
 import { Text, TextContent, TextVariants } from '@patternfly/react-core';
-import { Chart, ChartArea, ChartGroup, ChartLegend, ChartVoronoiContainer, ChartThemeColor, ChartAxis, ChartTooltip } from '@patternfly/react-charts';
+import { Chart, ChartArea, ChartBar, ChartLine, ChartGroup, ChartLegend, ChartVoronoiContainer, ChartThemeColor, ChartAxis, ChartTooltip } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 import { format as d3Format } from 'd3-format';
 
@@ -121,6 +121,14 @@ class KChart extends React.Component<KChartProps, State> {
       />
     );
     const scaleInfo = this.scaledAxisInfo(data);
+    const seriesBuilder = (this.props.chart.chartType === 'area')
+      ? (line, idx) => (<ChartArea key={'line-' + idx} data={line} />)
+      : (this.props.chart.chartType === 'bar')
+      ? (line, idx) => (<ChartBar key={'line-' + idx} data={line} />)
+      : (line, idx) => (<ChartLine key={'line-' + idx} data={line} />);
+    const groupOffset = this.props.chart.chartType === 'bar' ? 7 : 0;
+    const minDomain = this.props.chart.min === undefined ? undefined : { y: this.props.chart.min };
+    const maxDomain = this.props.chart.max === undefined ? undefined : { y: this.props.chart.max };
 
     return (
       <div ref={this.containerRef}>
@@ -132,7 +140,10 @@ class KChart extends React.Component<KChartProps, State> {
             height={height}
             width={this.state.width}
             themeColor={ChartThemeColor.multi}
-            scale={{x: 'time'}}>
+            scale={{x: 'time'}}
+            minDomain={minDomain}
+            maxDomain={maxDomain}>
+            <ChartGroup offset={groupOffset}>{data.series.map(seriesBuilder)}</ChartGroup>
             <ChartAxis
               tickCount={scaleInfo.count}
               style={{ tickLabels: {fontSize: 12, padding: 2} }}
@@ -143,11 +154,6 @@ class KChart extends React.Component<KChartProps, State> {
               tickFormat={formatter}
               style={{ tickLabels: {fontSize: 12, padding: 2} }}
             />
-            <ChartGroup>
-              {data.series.map((line, idx) => {
-                return (<ChartArea key={'line-' + idx} data={line} />);
-              })}
-            </ChartGroup>
           </Chart>
         </div>
         <ChartLegend

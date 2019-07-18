@@ -9,10 +9,33 @@ import '@patternfly/react-core/dist/styles/base.css';
 const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 12, 'kchart-seed');
 const histogram = generateRandomHistogramChart('Random histogram chart', 12, 'kchart-histo-seed');
 
+const reset = () => {
+  metric.chartType = undefined;
+  metric.min = undefined;
+  metric.max = undefined;
+};
+
 storiesOf('PF4 KChart', module)
-  .add('with data', () => (
-    <KChart chart={metric} dataSupplier={getDataSupplier(metric, new Map())!} />
-  ))
+  .add('as lines', () => {
+    reset();
+    return <KChart chart={metric} dataSupplier={getDataSupplier(metric, new Map())!} />;
+  })
+  .add('as areas', () => {
+    reset();
+    metric.chartType = 'area';
+    return <KChart chart={metric} dataSupplier={getDataSupplier(metric, new Map())!} />;
+  })
+  .add('as bars', () => {
+    reset();
+    metric.chartType = 'bar';
+    return <KChart chart={metric} dataSupplier={getDataSupplier(metric, new Map())!} />;
+  })
+  .add('with min=20, max=100', () => {
+    reset();
+    metric.min = 20;
+    metric.max = 100;
+    return <KChart chart={metric} dataSupplier={getDataSupplier(metric, new Map())!} />;
+  })
   .add('histogram', () => (
     <KChart chart={histogram} dataSupplier={getDataSupplier(histogram, new Map())!} />
   ))
