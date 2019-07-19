@@ -8,6 +8,7 @@ import { format as d3Format } from 'd3-format';
 import { ChartModel } from '../../../common/types/Dashboards';
 import { getFormatter } from '../../../common/utils/formatter';
 import { VictoryChartInfo } from '../types/VictoryChartInfo';
+import { buildLegend } from '../utils/victoryChartsUtils';
 
 const { VictoryPortal, VictoryLabel } = require('victory');
 
@@ -23,7 +24,7 @@ type State = {
 };
 
 const defaultChartHeight = 300;
-const legendHeight = 45;
+const defaultLegendHeight = 45;
 
 const expandBlockStyle: React.CSSProperties = {
   marginBottom: '-1.5em',
@@ -34,7 +35,7 @@ const expandBlockStyle: React.CSSProperties = {
 
 const emptyMetricsStyle = style({
   width: '100%',
-  height: defaultChartHeight + legendHeight,
+  height: defaultChartHeight + defaultLegendHeight,
   textAlign: 'center',
   $nest: {
     '& > p': {
@@ -101,6 +102,8 @@ class KChart extends React.Component<KChartProps, State> {
       return this.renderEmpty();
     }
 
+    const legend = buildLegend(data.rawLegend, this.state.width);
+
     const formatter = getFormatter(d3Format, this.props.chart.unit);
     const height = this.props.chartHeight || defaultChartHeight;
     // rendering in portal doesn't seem to work
@@ -108,7 +111,7 @@ class KChart extends React.Component<KChartProps, State> {
     const tooltip = (
       <ChartTooltip
         renderInPortal={true}
-        style={{ stroke: 'none' }}
+        style={{ stroke: 'none', fill: 'white' }}
       />
     );
     const container = (
@@ -148,11 +151,12 @@ class KChart extends React.Component<KChartProps, State> {
           </Chart>
         </div>
         <ChartLegend
-          data={data.legend}
-          height={legendHeight}
-          responsive={false}
+          x={50}
+          data={legend.items}
+          height={legend.height}
           themeColor={ChartThemeColor.multi}
           width={this.state.width}
+          itemsPerRow={legend.itemsPerRow}
         />
       </div>
     );
@@ -194,12 +198,12 @@ class KChart extends React.Component<KChartProps, State> {
 
   private scaledAxisInfo(data: VictoryChartInfo) {
     const ticks = Math.max(...(data.series.map(s => s.length)));
-    if ((window.innerWidth * this.props.chart.spans) / 12 < 500) {
+    if (this.state.width < 500) {
       return {
         count: Math.min(5, ticks),
         format: '%H:%M'
       };
-    } else if ((window.innerWidth * this.props.chart.spans) / 12 < 700) {
+    } else if (this.state.width < 700) {
       return {
         count: Math.min(10, ticks),
         format: '%H:%M'

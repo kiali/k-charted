@@ -9,10 +9,11 @@ export const generateRandomDashboard = (title: string, seed?: string): Dashboard
   return {
     title: title,
     charts: [
-      generateRandomMetricChart('Best animal', ['dogs', 'cats', 'birds']),
-      generateRandomMetricChart('Best fruit', ['apples', 'oranges', 'bananas']),
-      generateRandomHistogramChart('Animal histogram'),
-      generateRandomHistogramChart('Fruit histogram')
+      generateRandomMetricChart('Best animal', ['dogs', 'cats', 'birds'], 4),
+      generateRandomMetricChart('Best fruit', ['apples', 'oranges', 'bananas'], 4),
+      generateRandomHistogramChart('Animal histogram', 4),
+      generateRandomMetricChart('Best animal++', ['dogs', 'cats', 'birds', 'stunning animal with very very long name that you\'ve never about', 'mermaids', 'escherichia coli', 'wohlfahrtiimonas', 'Chuck Norris'], 6),
+      generateRandomMetricChart('Best fruit++', ['apples', 'oranges', 'bananas', 'peaches', 'peers', 'cherries', 'leetchies', 'pineapple'], 6),
     ],
     aggregations: []
   };

@@ -9,13 +9,13 @@ const t2 = new Date('2019-05-02T13:02:00.000Z');
 describe('Victory Charts Utils', () => {
   it('should provide empty columns for empty metric', () => {
     const res = getDataSupplier(empty, new Map())!();
-    expect(res.legend).toHaveLength(0);
+    expect(res.rawLegend).toHaveLength(0);
     expect(res.series).toHaveLength(0);
   });
 
   it('should provide columns for metric', () => {
     const res = getDataSupplier(metric, new Map())!();
-    expect(res.legend).toHaveLength(1);
+    expect(res.rawLegend).toHaveLength(1);
     expect(res.series).toHaveLength(1);
     expect(res.series[0].map(s => s.x)).toEqual([t0, t1, t2]);
     expect(res.series[0].map(s => s.y)).toEqual([50.4, 48.2, 42]);
@@ -24,7 +24,7 @@ describe('Victory Charts Utils', () => {
 
   it('should provide columns for histogram', () => {
     const res = getDataSupplier(histogram, new Map())!();
-    expect(res.legend).toHaveLength(2);
+    expect(res.rawLegend).toHaveLength(2);
     expect(res.series).toHaveLength(2);
     expect(res.series[0].map(s => s.x)).toEqual([t0, t1, t2]);
     expect(res.series[0].map(s => s.y)).toEqual([50.4, 48.2, 42]);

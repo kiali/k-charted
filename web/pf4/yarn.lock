@@ -1481,12 +1481,12 @@
   resolved "https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha512-shAmDyaQC4H92APFoIaVDHCx5bStIocgvbwQyxPRrbUY20V1EYTbSDchWbuwlMG3V17cprZhA6+78JfB+3DTPw==
 
-"@patternfly/react-charts@~4.1.5":
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/@patternfly/react-charts/-/react-charts-4.1.5.tgz#6a2e72aa97d91d57d9eab522c495c2123ce4a479"
-  integrity sha512-wXK8+RXVoC4fT1Eo+diWMgtz+aNid9doEoQG7+/9OI/64X7Qju/JGJ0Wl+kTy0kjQd0bQW61/sTLJ+bS0KOukw==
+"@patternfly/react-charts@~4.4.7":
+  version "4.4.7"
+  resolved "https://registry.yarnpkg.com/@patternfly/react-charts/-/react-charts-4.4.7.tgz#3f1047b81a1c586919de2d9b4b605a26717fadd7"
+  integrity sha512-uTo+NLJtdGRRwKvy8w5nalISce05fuapzVQbHzex53yKeRizLl7DA6xCyUIj87FiT8uO6wUMF7mUAlW78UnzIw==
   dependencies:
-    "@patternfly/react-styles" "^3.3.3"
+    "@patternfly/react-styles" "^3.4.6"
   optionalDependencies:
     "@types/lodash" "^4.14.132"
     "@types/victory" "^31.0.18"
@@ -1524,6 +1524,25 @@
     "@fortawesome/free-brands-svg-icons" "^5.8.1"
 
 "@patternfly/react-styles@^3.3.3":
+  version "3.4.6"
+  resolved "https://registry.yarnpkg.com/@patternfly/react-styles/-/react-styles-3.4.6.tgz#03c645adfa3f6b8b7113232e90326547a39c6322"
+  integrity sha512-m9ynr85EMmBAxGhCguwRiGgpLDA9+YKtwF83ORK7ylHHsrK9JC/RFPvTj8d/80oUMmlzcL765ZwG7sT9qR3ybA==
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.0.0-beta.48"
+    camel-case "^3.0.0"
+    css "^2.2.3"
+    cssom "^0.3.4"
+    cssstyle "^0.3.1"
+    emotion "^9.2.9"
+    emotion-server "^9.2.9"
+    fbjs-scripts "^0.8.3"
+    fs-extra "^6.0.1"
+    jsdom "^15.1.0"
+    relative "^3.0.2"
+    resolve-from "^4.0.0"
+    typescript "3.4.5"
+
+"@patternfly/react-styles@^3.4.6":
   version "3.4.6"
   resolved "https://registry.yarnpkg.com/@patternfly/react-styles/-/react-styles-3.4.6.tgz#03c645adfa3f6b8b7113232e90326547a39c6322"
   integrity sha512-m9ynr85EMmBAxGhCguwRiGgpLDA9+YKtwF83ORK7ylHHsrK9JC/RFPvTj8d/80oUMmlzcL765ZwG7sT9qR3ybA==
