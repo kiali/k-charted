@@ -20,6 +20,9 @@ type Chart struct {
 	Name      string                     `json:"name"`
 	Unit      string                     `json:"unit"`
 	Spans     int                        `json:"spans"`
+	ChartType *string                    `json:"chartType,omitempty"`
+	Min       *int                       `json:"min,omitempty"`
+	Max       *int                       `json:"max,omitempty"`
 	Metric    []*SampleStream            `json:"metric"`
 	Histogram map[string][]*SampleStream `json:"histogram"`
 	Error     string                     `json:"error"`
@@ -76,9 +79,12 @@ func convertSamplePair(from *pmod.SamplePair) SamplePair {
 // ConvertChart converts a k8s chart (from MonitoringDashboard k8s resource) into this models chart
 func ConvertChart(from v1alpha1.MonitoringDashboardChart) Chart {
 	return Chart{
-		Name:  from.Name,
-		Unit:  from.Unit,
-		Spans: from.Spans,
+		Name:      from.Name,
+		Unit:      from.Unit,
+		Spans:     from.Spans,
+		ChartType: from.ChartType,
+		Min:       from.Min,
+		Max:       from.Max,
 	}
 }
 
