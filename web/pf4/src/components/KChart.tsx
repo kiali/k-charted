@@ -121,11 +121,10 @@ class KChart extends React.Component<KChartProps, State> {
       />
     );
     const scaleInfo = this.scaledAxisInfo(data);
-    const seriesBuilder = (this.props.chart.chartType === 'area')
-      ? (line, idx) => (<ChartArea key={'line-' + idx} data={line} />)
-      : (this.props.chart.chartType === 'bar')
-      ? (line, idx) => (<ChartBar key={'line-' + idx} data={line} />)
-      : (line, idx) => (<ChartLine key={'line-' + idx} data={line} />);
+    const seriesBuilder =
+      (this.props.chart.chartType === 'area') ? (serie, idx) => (<ChartArea key={'serie-' + idx} data={serie} />) :
+      (this.props.chart.chartType === 'bar')  ? (serie, idx) => (<ChartBar key={'serie-' + idx} data={serie} />) :
+                                                (serie, idx) => (<ChartLine key={'serie-' + idx} data={serie} />);
     const groupOffset = this.props.chart.chartType === 'bar' ? 7 : 0;
     const minDomain = this.props.chart.min === undefined ? undefined : { y: this.props.chart.min };
     const maxDomain = this.props.chart.max === undefined ? undefined : { y: this.props.chart.max };
