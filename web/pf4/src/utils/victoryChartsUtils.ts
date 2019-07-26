@@ -1,9 +1,8 @@
 import { ChartLineProps } from '@patternfly/react-charts';
 import { TimeSeries, Histogram } from '../../../common/types/Metrics';
 import { VictoryChartInfo, LegendInfo } from '../types/VictoryChartInfo';
-import { filterAndNameMetric, filterAndNameHistogram } from '../../../common/utils/timeSeriesUtils';
+import { filterAndNameMetric, filterAndNameHistogram, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
-import { AllPromLabelsValues } from '../../../common/types/Labels';
 
 const toVCLines = (ts: TimeSeries[], unit: string): VictoryChartInfo => {
   return {
@@ -37,25 +36,25 @@ const histogramToVCLines = (histogram: Histogram, unit: string): VictoryChartInf
   };
 };
 
-const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labelValues: AllPromLabelsValues, unit: string): () => VictoryChartInfo => {
+const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labels: LabelsInfo, unit: string): () => VictoryChartInfo => {
   return () => {
-    const filtered = filterAndNameMetric(chartName, metrics, labelValues);
+    const filtered = filterAndNameMetric(chartName, metrics, labels);
     return toVCLines(filtered, unit);
   };
 };
 
-const histogramDataSupplier = (histogram: Histogram, labelValues: AllPromLabelsValues, unit: string): () => VictoryChartInfo => {
+const histogramDataSupplier = (histogram: Histogram, labels: LabelsInfo, unit: string): () => VictoryChartInfo => {
   return () => {
-    const filtered = filterAndNameHistogram(histogram, labelValues);
+    const filtered = filterAndNameHistogram(histogram, labels);
     return histogramToVCLines(filtered, unit);
   };
 };
 
-export const getDataSupplier = (chart: ChartModel, labelValues: AllPromLabelsValues): (() => VictoryChartInfo) | undefined => {
+export const getDataSupplier = (chart: ChartModel, labels: LabelsInfo): (() => VictoryChartInfo) | undefined => {
   if (chart.metric) {
-    return metricsDataSupplier(chart.name, chart.metric, labelValues, chart.unit);
+    return metricsDataSupplier(chart.name, chart.metric, labels, chart.unit);
   } else if (chart.histogram) {
-    return histogramDataSupplier(chart.histogram, labelValues, chart.unit);
+    return histogramDataSupplier(chart.histogram, labels, chart.unit);
   }
   return undefined;
 };
