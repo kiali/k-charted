@@ -23,13 +23,23 @@ export const filterAndNameHistogram = (histogram: Histogram, labelValues: AllPro
   const filtered: Histogram = {};
   Object.keys(histogram).forEach(stat => {
     filtered[stat] = histogram[stat].filter(ts => isVisibleMetric(ts.labelSet, labelValues));
-    const statName = stat === 'avg' ? 'average' : 'quantile ' + stat;
-    nameHistogramStat(filtered[stat], statName);
+    nameHistogramStat(filtered[stat], stat);
   });
   return filtered;
 };
 
+const mapStatForDisplay = (stat: string): string => {
+  switch (stat) {
+    case '0.5': return 'p50';
+    case '0.95': return 'p95';
+    case '0.99': return 'p99';
+    case '0.999': return 'p99.9';
+    default: return stat;
+  }
+};
+
 const nameHistogramStat = (matrix: TimeSeries[], stat: string): TimeSeries[] => {
+  const statDisplay = mapStatForDisplay(stat);
   matrix.forEach(ts => {
     const labels = Object.keys(ts.labelSet)
       .filter(k => k !== 'reporter')
@@ -37,10 +47,10 @@ const nameHistogramStat = (matrix: TimeSeries[], stat: string): TimeSeries[] => 
       .join(',');
     if (labels === '') {
       // Ex: average // quantile 0.999 // etc.
-      ts.name = stat;
+      ts.name = statDisplay;
     } else {
       // Ex: policy: average // stadium: quantile 0.999 // etc.
-      ts.name = `${labels}: ${stat}`;
+      ts.name = `${labels}: ${statDisplay}`;
     }
   });
   return matrix;
