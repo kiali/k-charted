@@ -28,10 +28,10 @@ describe('Victory Charts Utils', () => {
     expect(res.series).toHaveLength(2);
     expect(res.series[0].map(s => s.x)).toEqual([t0, t1, t2]);
     expect(res.series[0].map(s => s.y)).toEqual([50.4, 48.2, 42]);
-    expect(res.series[0].map(s => s.name)).toEqual(['average', 'average', 'average']);
+    expect(res.series[0].map(s => s.name)).toEqual(['avg', 'avg', 'avg']);
     expect(res.series[1].map(s => s.x)).toEqual([t0, t1, t2]);
     expect(res.series[1].map(s => s.y)).toEqual([150.4, 148.2, 142]);
-    expect(res.series[1].map(s => s.name)).toEqual(['quantile 0.99', 'quantile 0.99', 'quantile 0.99']);
+    expect(res.series[1].map(s => s.name)).toEqual(['p99', 'p99', 'p99']);
   });
 
   it('should ignore NaN values', () => {

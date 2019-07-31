@@ -20,8 +20,8 @@ describe('C3 Charts Utils', () => {
     const res = getDataSupplier(histogram, new Map())!();
     expect(res.columns).toHaveLength(3);
     expect(res.columns[0]).toEqual(['x', 1556802000000, 1556802060000, 1556802120000]);
-    expect(res.columns[1]).toEqual(['average', 50.4, 48.2, 42]);
-    expect(res.columns[2]).toEqual(['quantile 0.99', 150.4, 148.2, 142]);
+    expect(res.columns[1]).toEqual(['avg', 50.4, 48.2, 42]);
+    expect(res.columns[2]).toEqual(['p99', 150.4, 148.2, 142]);
   });
 
   it('should normalize with ealier metric', () => {
