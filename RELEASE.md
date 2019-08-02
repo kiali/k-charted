@@ -24,3 +24,7 @@ make go pf3 pf4
 cd web/pf3 && npm publish
 cd ../pf4 && npm publish
 ```
+
+- Go to Github: https://github.com/kiali/k-charted/releases/new and fill-in new release (from tag vx.y.z, named vx.y.z), including some description + link to the commits list, e.g.:
+https://github.com/kiali/k-charted/compare/v0.2.0...v0.2.1
+
