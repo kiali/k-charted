@@ -81,7 +81,7 @@ export class Dashboard extends React.Component<Props, State> {
         <KChart
           key={chart.name}
           chart={chart}
-          dataSupplier={dataSupplier}
+          data={dataSupplier()}
           expandHandler={expandHandler}
         />
       );

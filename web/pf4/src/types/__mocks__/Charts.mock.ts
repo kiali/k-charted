@@ -5,11 +5,14 @@ import seedrandom from 'seedrandom';
 const t0 = 1556802000;
 const increment = 60;
 
-const genSeries = (names: string[]): TimeSeries[] => {
-  return names.map(name => {
+type MetricMock = { name: string, labels: { [key: string]: string } };
+
+const genSeries = (metrics: MetricMock[]): TimeSeries[] => {
+  return metrics.map(m => {
+    m.labels.__name__ = m.name;
     return {
       values: genSingle(0, 50),
-      labelSet: { lbl: name }
+      labelSet: m.labels
     };
   });
 };
@@ -32,7 +35,19 @@ export const generateRandomMetricChart = (title: string, names: string[], spans:
     name: title,
     unit: 'bytes',
     spans: spans,
-    metric: genSeries(names)
+    metric: genSeries(names.map(n => ({ name: n, labels: {}})))
+  };
+};
+
+export const generateRandomMetricChartWithLabels = (title: string, metrics: MetricMock[], spans: SpanValue, seed?: string): ChartModel => {
+  if (seed) {
+    seedrandom(seed, { global: true });
+  }
+  return {
+    name: title,
+    unit: 'bytes',
+    spans: spans,
+    metric: genSeries(metrics)
   };
 };
 
