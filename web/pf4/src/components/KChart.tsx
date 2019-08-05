@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { style } from 'typestyle';
 import { Button, Text, TextContent, TextVariants } from '@patternfly/react-core';
-import { Chart, ChartArea, ChartBar, ChartLine, ChartGroup, ChartLegend, ChartThemeColor, ChartAxis, ChartTooltip } from '@patternfly/react-charts';
+import { Chart, ChartArea, ChartBar, ChartLine, ChartGroup, ChartLegend, ChartThemeColor, ChartAxis } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 import { format as d3Format } from 'd3-format';
 
