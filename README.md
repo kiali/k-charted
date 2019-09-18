@@ -142,6 +142,7 @@ Then, assuming the repos are located within your $GOPATH, run:
 cd ${GOPATH}/src/github.com/kiali/kiali
 glide mirror set https://github.com/kiali/k-charted file://${GOPATH}/src/github.com/kiali/k-charted
 
+# Edit Kiali glide.yaml to point k-charted to your commit SHA
 # Then, update your dependencies. In Kiali:
 make dep-update
 ```

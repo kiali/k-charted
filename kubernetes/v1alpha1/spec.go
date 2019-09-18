@@ -33,10 +33,11 @@ type MonitoringDashboardsList struct {
 }
 
 type MonitoringDashboardSpec struct {
-	Title      string                    `json:"title"`
-	Runtime    string                    `json:"runtime"`
-	DiscoverOn string                    `json:"discoverOn"`
-	Items      []MonitoringDashboardItem `json:"items"`
+	Title         string                            `json:"title"`
+	Runtime       string                            `json:"runtime"`
+	DiscoverOn    string                            `json:"discoverOn"`
+	Items         []MonitoringDashboardItem         `json:"items"`
+	ExternalLinks []MonitoringDashboardExternalLink `json:"externalLinks"`
 }
 
 type MonitoringDashboardItem struct {
@@ -64,6 +65,20 @@ type MonitoringDashboardChart struct {
 type MonitoringDashboardAggregation struct {
 	Label       string `json:"label"`
 	DisplayName string `json:"displayName"`
+}
+
+type MonitoringDashboardExternalLink struct {
+	Type      string                                   `json:"type"`
+	Name      string                                   `json:"name"`
+	Variables MonitoringDashboardExternalLinkVariables `json:"variables"`
+}
+
+type MonitoringDashboardExternalLinkVariables struct {
+	Namespace string `json:"namespace,omitempty"`
+	App       string `json:"app,omitempty"`
+	Service   string `json:"service,omitempty"`
+	Version   string `json:"version,omitempty"`
+	Workload  string `json:"workload,omitempty"`
 }
 
 // TODO: auto-generate the following deepcopy methods!
