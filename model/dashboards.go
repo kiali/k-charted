@@ -10,9 +10,10 @@ import (
 
 // MonitoringDashboard is the model representing custom monitoring dashboard, transformed from MonitoringDashboard k8s resource
 type MonitoringDashboard struct {
-	Title        string        `json:"title"`
-	Charts       []Chart       `json:"charts"`
-	Aggregations []Aggregation `json:"aggregations"`
+	Title         string         `json:"title"`
+	Charts        []Chart        `json:"charts"`
+	Aggregations  []Aggregation  `json:"aggregations"`
+	ExternalLinks []ExternalLink `json:"externalLinks"`
 }
 
 // Chart is the model representing a custom chart, transformed from charts in MonitoringDashboard k8s resource
@@ -111,6 +112,13 @@ func ConvertAggregations(from v1alpha1.MonitoringDashboardSpec) []Aggregation {
 		return aggs[i].DisplayName < aggs[j].DisplayName
 	})
 	return aggs
+}
+
+// ExternalLink provides links to external dashboards (e.g. to Grafana)
+type ExternalLink struct {
+	URL       string                                            `json:"url"`
+	Name      string                                            `json:"name"`
+	Variables v1alpha1.MonitoringDashboardExternalLinkVariables `json:"variables"`
 }
 
 // Runtime holds the runtime title and associated dashboard template(s)

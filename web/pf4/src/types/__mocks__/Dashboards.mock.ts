@@ -15,12 +15,14 @@ export const generateRandomDashboard = (title: string, seed?: string): Dashboard
       generateRandomMetricChart('Best animal++', ['dogs', 'cats', 'birds', 'stunning animal with very very long name that you\'ve never about', 'mermaids', 'escherichia coli', 'wohlfahrtiimonas', 'Chuck Norris'], 6),
       generateRandomMetricChart('Best fruit++', ['apples', 'oranges', 'bananas', 'peaches', 'peers', 'cherries', 'leetchies', 'pineapple'], 6),
     ],
-    aggregations: []
+    aggregations: [],
+    externalLinks: []
   };
 };
 
 export const emptyDashboard: DashboardModel = {
   title: 'Empty dashboard',
   charts: [],
-  aggregations: []
+  aggregations: [],
+  externalLinks: []
 };
