@@ -87,7 +87,7 @@ func TestConvertEmptyMatrix(t *testing.T) {
 	var matrix pmod.Matrix
 
 	// Make sure matrices are never nil, but empty slices
-	res := ConvertMatrix(matrix)
+	res := ConvertMatrix(matrix, 0.0)
 	assert.NotNil(res)
 	assert.Len(res, 0)
 }

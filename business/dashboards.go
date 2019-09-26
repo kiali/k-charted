@@ -190,6 +190,10 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 	for i, item := range dashboard.Spec.Items {
 		go func(idx int, chart v1alpha1.MonitoringDashboardChart) {
 			defer wg.Done()
+			unitScale := 1.0
+			if chart.UnitScale != 0.0 {
+				unitScale = chart.UnitScale
+			}
 			filledCharts[idx] = model.ConvertChart(chart)
 			if chart.DataType == v1alpha1.Raw {
 				aggregator := params.RawDataAggregator
@@ -197,13 +201,13 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 					aggregator = chart.Aggregator
 				}
 				metric := promClient.FetchRange(chart.MetricName, filters, grouping, aggregator, &params.MetricsQuery)
-				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, chart.MetricName)
+				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, unitScale, chart.MetricName)
 			} else if chart.DataType == v1alpha1.Rate {
 				metric := promClient.FetchRateRange(chart.MetricName, filters, grouping, &params.MetricsQuery)
-				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, chart.MetricName)
+				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, unitScale, chart.MetricName)
 			} else {
 				histo := promClient.FetchHistogramRange(chart.MetricName, filters, grouping, &params.MetricsQuery)
-				filledCharts[idx].Histogram, filledCharts[idx].Error = in.convertHistogram(histo, chart.MetricName)
+				filledCharts[idx].Histogram, filledCharts[idx].Error = in.convertHistogram(histo, unitScale, chart.MetricName)
 			}
 		}(i, item.Chart)
 	}
@@ -231,10 +235,10 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 	}, nil
 }
 
-func (in *DashboardsService) convertHistogram(from prometheus.Histogram, name string) (map[string][]*model.SampleStream, string) {
+func (in *DashboardsService) convertHistogram(from prometheus.Histogram, scale float64, name string) (map[string][]*model.SampleStream, string) {
 	stats := make(map[string][]*model.SampleStream, len(from))
 	for k, v := range from {
-		s, err := in.convertMetric(v, name+"/"+k)
+		s, err := in.convertMetric(v, scale, name+"/"+k)
 		if err != "" {
 			return nil, err
 		}
@@ -243,12 +247,12 @@ func (in *DashboardsService) convertHistogram(from prometheus.Histogram, name st
 	return stats, ""
 }
 
-func (in *DashboardsService) convertMetric(from prometheus.Metric, name string) ([]*model.SampleStream, string) {
+func (in *DashboardsService) convertMetric(from prometheus.Metric, scale float64, name string) ([]*model.SampleStream, string) {
 	if from.Err != nil {
 		in.Logger.Errorf("error in metric %s: %v", name, from.Err)
 		return []*model.SampleStream{}, from.Err.Error()
 	}
-	return model.ConvertMatrix(from.Matrix), ""
+	return model.ConvertMatrix(from.Matrix, scale), ""
 }
 
 // SearchExplicitDashboards will check annotations of all supplied pods to extract a unique list of dashboards
