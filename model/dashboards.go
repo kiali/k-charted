@@ -1,11 +1,13 @@
 package model
 
 import (
+	"fmt"
 	"sort"
 
 	pmod "github.com/prometheus/common/model"
 
 	"github.com/kiali/k-charted/kubernetes/v1alpha1"
+	"github.com/kiali/k-charted/prometheus"
 )
 
 // MonitoringDashboard is the model representing custom monitoring dashboard, transformed from MonitoringDashboard k8s resource
@@ -27,6 +29,26 @@ type Chart struct {
 	Metric    []*SampleStream            `json:"metric"`
 	Histogram map[string][]*SampleStream `json:"histogram"`
 	Error     string                     `json:"error"`
+}
+
+func FillHistogram(from prometheus.Histogram, scale float64, name string, chart *Chart) {
+	stats := make(map[string][]*SampleStream, len(from))
+	for stat, metric := range from {
+		if metric.Err != nil {
+			chart.Error = fmt.Sprintf("error in metric %s/%s: %v", name, stat, metric.Err)
+			return
+		}
+		stats[stat] = ConvertMatrix(metric.Matrix, scale)
+	}
+	chart.Histogram = stats
+}
+
+func FillMetric(from prometheus.Metric, scale float64, name string, chart *Chart) {
+	if from.Err != nil {
+		chart.Error = fmt.Sprintf("error in metric %s: %v", name, from.Err)
+		return
+	}
+	chart.Metric = ConvertMatrix(from.Matrix, scale)
 }
 
 func ConvertMatrix(from pmod.Matrix, scale float64) []*SampleStream {

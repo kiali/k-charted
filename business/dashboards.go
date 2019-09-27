@@ -201,13 +201,13 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 					aggregator = chart.Aggregator
 				}
 				metric := promClient.FetchRange(chart.MetricName, filters, grouping, aggregator, &params.MetricsQuery)
-				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, unitScale, chart.MetricName)
+				model.FillMetric(metric, unitScale, chart.MetricName, &filledCharts[idx])
 			} else if chart.DataType == v1alpha1.Rate {
 				metric := promClient.FetchRateRange(chart.MetricName, filters, grouping, &params.MetricsQuery)
-				filledCharts[idx].Metric, filledCharts[idx].Error = in.convertMetric(metric, unitScale, chart.MetricName)
+				model.FillMetric(metric, unitScale, chart.MetricName, &filledCharts[idx])
 			} else {
 				histo := promClient.FetchHistogramRange(chart.MetricName, filters, grouping, &params.MetricsQuery)
-				filledCharts[idx].Histogram, filledCharts[idx].Error = in.convertHistogram(histo, unitScale, chart.MetricName)
+				model.FillHistogram(histo, unitScale, chart.MetricName, &filledCharts[idx])
 			}
 		}(i, item.Chart)
 	}
@@ -233,26 +233,6 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 		Aggregations:  aggLabels,
 		ExternalLinks: externalLinks,
 	}, nil
-}
-
-func (in *DashboardsService) convertHistogram(from prometheus.Histogram, scale float64, name string) (map[string][]*model.SampleStream, string) {
-	stats := make(map[string][]*model.SampleStream, len(from))
-	for k, v := range from {
-		s, err := in.convertMetric(v, scale, name+"/"+k)
-		if err != "" {
-			return nil, err
-		}
-		stats[k] = s
-	}
-	return stats, ""
-}
-
-func (in *DashboardsService) convertMetric(from prometheus.Metric, scale float64, name string) ([]*model.SampleStream, string) {
-	if from.Err != nil {
-		in.Logger.Errorf("error in metric %s: %v", name, from.Err)
-		return []*model.SampleStream{}, from.Err.Error()
-	}
-	return model.ConvertMatrix(from.Matrix, scale), ""
 }
 
 // SearchExplicitDashboards will check annotations of all supplied pods to extract a unique list of dashboards
