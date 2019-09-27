@@ -29,10 +29,10 @@ type Chart struct {
 	Error     string                     `json:"error"`
 }
 
-func ConvertMatrix(from pmod.Matrix) []*SampleStream {
+func ConvertMatrix(from pmod.Matrix, scale float64) []*SampleStream {
 	series := make([]*SampleStream, len(from))
 	for i, s := range from {
-		series[i] = convertSampleStream(s)
+		series[i] = convertSampleStream(s, scale)
 	}
 	return series
 }
@@ -42,14 +42,14 @@ type SampleStream struct {
 	Values   []SamplePair      `json:"values"`
 }
 
-func convertSampleStream(from *pmod.SampleStream) *SampleStream {
+func convertSampleStream(from *pmod.SampleStream, scale float64) *SampleStream {
 	labelSet := make(map[string]string, len(from.Metric))
 	for k, v := range from.Metric {
 		labelSet[string(k)] = string(v)
 	}
 	values := make([]SamplePair, len(from.Values))
 	for i, v := range from.Values {
-		values[i] = convertSamplePair(&v)
+		values[i] = convertSamplePair(&v, scale)
 	}
 	return &SampleStream{
 		LabelSet: labelSet,
@@ -70,10 +70,10 @@ func (s SamplePair) MarshalJSON() ([]byte, error) {
 	}.MarshalJSON()
 }
 
-func convertSamplePair(from *pmod.SamplePair) SamplePair {
+func convertSamplePair(from *pmod.SamplePair, scale float64) SamplePair {
 	return SamplePair{
 		Timestamp: int64(from.Timestamp),
-		Value:     float64(from.Value),
+		Value:     scale * float64(from.Value),
 	}
 }
 

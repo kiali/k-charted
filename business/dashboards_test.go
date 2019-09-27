@@ -69,8 +69,8 @@ func TestGetDashboard(t *testing.T) {
 	assert.Equal("My chart 1_2", dashboard.Charts[1].Name)
 	assert.Nil(dashboard.Charts[0].Histogram)
 	assert.Nil(dashboard.Charts[1].Metric)
-	assert.Equal(float64(10), dashboard.Charts[0].Metric[0].Values[0].Value)
-	assert.Equal(float64(11), dashboard.Charts[1].Histogram["avg"][0].Values[0].Value)
+	assert.Equal(float64(100), dashboard.Charts[0].Metric[0].Values[0].Value)
+	assert.Equal(float64(110), dashboard.Charts[1].Histogram["avg"][0].Values[0].Value)
 }
 
 func TestGetDashboardFromKialiNamespace(t *testing.T) {
@@ -260,13 +260,13 @@ func TestConvertEmptyMetric(t *testing.T) {
 	var metric prometheus.Metric
 
 	// Make sure metric is never nil, but empty slice
-	res, err := in.convertMetric(metric, "foo")
+	res, err := in.convertMetric(metric, 0.0, "foo")
 	assert.Empty(err)
 	assert.NotNil(res)
 	assert.Len(res, 0)
 
 	metric.Err = errors.New("Some error")
-	res, err = in.convertMetric(metric, "foo")
+	res, err = in.convertMetric(metric, 0.0, "foo")
 	assert.Equal("Some error", err)
 	assert.NotNil(res)
 	assert.Len(res, 0)
@@ -278,7 +278,7 @@ func TestConvertEmptyHistogram(t *testing.T) {
 	var histo prometheus.Histogram
 
 	// An empty histogram gives an empty map
-	res, err := in.convertHistogram(histo, "foo")
+	res, err := in.convertHistogram(histo, 0.0, "foo")
 	assert.Empty(err)
 	assert.NotNil(res)
 	assert.Len(res, 0)
@@ -287,7 +287,7 @@ func TestConvertEmptyHistogram(t *testing.T) {
 	histo = make(prometheus.Histogram)
 	var metric prometheus.Metric
 	histo["0.99"] = metric
-	res, err = in.convertHistogram(histo, "foo")
+	res, err = in.convertHistogram(histo, 0.0, "foo")
 	assert.Empty(err)
 	assert.NotNil(res)
 	assert.Len(res, 1)
@@ -297,7 +297,7 @@ func TestConvertEmptyHistogram(t *testing.T) {
 	// Check with error (here, histogram is nil)
 	metric.Err = errors.New("Some error")
 	histo["0.99"] = metric
-	res, err = in.convertHistogram(histo, "foo")
+	res, err = in.convertHistogram(histo, 0.0, "foo")
 	assert.Equal("Some error", err)
 	assert.Nil(res)
 }
