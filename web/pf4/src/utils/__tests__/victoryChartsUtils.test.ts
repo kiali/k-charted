@@ -9,29 +9,26 @@ const t2 = new Date('2019-05-02T13:02:00.000Z');
 describe('Victory Charts Utils', () => {
   it('should provide empty columns for empty metric', () => {
     const res = getDataSupplier(empty, emptyLabels)!();
-    expect(res.rawLegend).toHaveLength(0);
-    expect(res.series).toHaveLength(0);
+    expect(res).toHaveLength(0);
   });
 
   it('should provide columns for metric', () => {
     const res = getDataSupplier(metric, emptyLabels)!();
-    expect(res.rawLegend).toHaveLength(1);
-    expect(res.series).toHaveLength(1);
-    expect(res.series[0].map(s => s.x)).toEqual([t0, t1, t2]);
-    expect(res.series[0].map(s => s.y)).toEqual([50.4, 48.2, 42]);
-    expect(res.series[0].map(s => s.name)).toEqual(['Metric chart', 'Metric chart', 'Metric chart']);
+    expect(res).toHaveLength(1);
+    expect(res[0].datapoints.map(s => s.x)).toEqual([t0, t1, t2]);
+    expect(res[0].datapoints.map(s => s.y)).toEqual([50.4, 48.2, 42]);
+    expect(res[0].datapoints.map(s => s.name)).toEqual(['Metric chart', 'Metric chart', 'Metric chart']);
   });
 
   it('should provide columns for histogram', () => {
     const res = getDataSupplier(histogram, emptyLabels)!();
-    expect(res.rawLegend).toHaveLength(2);
-    expect(res.series).toHaveLength(2);
-    expect(res.series[0].map(s => s.x)).toEqual([t0, t1, t2]);
-    expect(res.series[0].map(s => s.y)).toEqual([50.4, 48.2, 42]);
-    expect(res.series[0].map(s => s.name)).toEqual(['avg', 'avg', 'avg']);
-    expect(res.series[1].map(s => s.x)).toEqual([t0, t1, t2]);
-    expect(res.series[1].map(s => s.y)).toEqual([150.4, 148.2, 142]);
-    expect(res.series[1].map(s => s.name)).toEqual(['p99', 'p99', 'p99']);
+    expect(res).toHaveLength(2);
+    expect(res[0].datapoints.map(s => s.x)).toEqual([t0, t1, t2]);
+    expect(res[0].datapoints.map(s => s.y)).toEqual([50.4, 48.2, 42]);
+    expect(res[0].datapoints.map(s => s.name)).toEqual(['avg', 'avg', 'avg']);
+    expect(res[1].datapoints.map(s => s.x)).toEqual([t0, t1, t2]);
+    expect(res[1].datapoints.map(s => s.y)).toEqual([150.4, 148.2, 142]);
+    expect(res[1].datapoints.map(s => s.name)).toEqual(['p99', 'p99', 'p99']);
   });
 
   it('should ignore NaN values', () => {
@@ -46,16 +43,16 @@ describe('Victory Charts Utils', () => {
     };
 
     const res = getDataSupplier(withNaN, emptyLabels)!();
-    expect(res.series).toHaveLength(1);
-    expect(res.series[0].map(s => s.y)).toEqual([1, 2, 4]);
+    expect(res).toHaveLength(1);
+    expect(res[0].datapoints.map(s => s.y)).toEqual([1, 2, 4]);
   });
 
   it('should prettify labels', () => {
     const res = getDataSupplier(metricWithLabels, labelsWithPrettifier)!();
-    expect(res.rawLegend).toEqual(['OK', 'No content', 'foobar']);
-    expect(res.series).toHaveLength(3);
-    expect(res.series[0].map(s => s.name)).toEqual(['OK']);
-    expect(res.series[1].map(s => s.name)).toEqual(['No content']);
-    expect(res.series[2].map(s => s.name)).toEqual(['foobar']);
+    expect(res).toHaveLength(3);
+    expect(res.map(s => s.legendItem.name)).toEqual(['OK', 'No content', 'foobar']);
+    expect(res[0].datapoints.map(s => s.name)).toEqual(['OK']);
+    expect(res[1].datapoints.map(s => s.name)).toEqual(['No content']);
+    expect(res[2].datapoints.map(s => s.name)).toEqual(['foobar']);
   });
 });
