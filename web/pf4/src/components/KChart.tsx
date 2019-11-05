@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { style } from 'typestyle';
 import { Button, Text, TextContent, TextVariants } from '@patternfly/react-core';
-import { Chart, ChartArea, ChartBar, ChartLine, ChartGroup, ChartThemeColor, ChartAxis } from '@patternfly/react-charts';
+import { Chart, ChartArea, ChartBar, ChartLine, ChartGroup, ChartAxis } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 import { VictoryLegend, VictoryPortal, VictoryLabel } from 'victory';
 import { format as d3Format } from 'd3-format';
@@ -101,9 +101,9 @@ class KChart extends React.Component<KChartProps, State> {
 
     const scaleInfo = this.scaledAxisInfo(this.props.data);
     const seriesBuilder =
-      (this.props.chart.chartType === 'area') ? (serie: VCLine, idx) => (<ChartArea key={'serie-' + idx} name={'serie-' + idx} data={serie.datapoints} />) :
-      (this.props.chart.chartType === 'bar')  ? (serie: VCLine, idx) => (<ChartBar key={'serie-' + idx} name={'serie-' + idx} data={serie.datapoints} />) :
-                                                (serie: VCLine, idx) => (<ChartLine key={'serie-' + idx} name={'serie-' + idx} data={serie.datapoints} />);
+      (this.props.chart.chartType === 'area') ? (serie: VCLine, idx) => (<ChartArea key={'serie-' + idx} name={'serie-' + idx} data={serie.datapoints} style={{ data: { fill: serie.color } }} />) :
+      (this.props.chart.chartType === 'bar')  ? (serie: VCLine, idx) => (<ChartBar key={'serie-' + idx} name={'serie-' + idx} data={serie.datapoints} style={{ data: { fill: serie.color } }} />) :
+                                                (serie: VCLine, idx) => (<ChartLine key={'serie-' + idx} name={'serie-' + idx} data={serie.datapoints} style={{ data: { stroke: serie.color } }} />);
     const groupOffset = this.props.chart.chartType === 'bar' ? 7 : 0;
     const minDomain = this.props.chart.min === undefined ? undefined : { y: this.props.chart.min };
     const maxDomain = this.props.chart.max === undefined ? undefined : { y: this.props.chart.max };
@@ -182,7 +182,6 @@ class KChart extends React.Component<KChartProps, State> {
           padding={padding}
           events={events}
           containerComponent={createContainer()}
-          themeColor={ChartThemeColor.multi}
           scale={{x: 'time'}}
           minDomain={minDomain}
           maxDomain={maxDomain}>
@@ -215,7 +214,6 @@ class KChart extends React.Component<KChartProps, State> {
             x={50}
             y={height - legend.height}
             height={legend.height}
-            themeColor={ChartThemeColor.multi}
             width={this.state.width}
             itemsPerRow={legend.itemsPerRow}
           />

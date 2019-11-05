@@ -2,6 +2,7 @@ import * as React from 'react';
 import { style } from 'typestyle';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { AngleDoubleLeftIcon } from '@patternfly/react-icons';
+import { getTheme, ChartThemeColor, ChartThemeVariant } from '@patternfly/react-charts';
 
 import { AllPromLabelsValues } from '../../../common/types/Labels';
 import { DashboardModel, ChartModel } from '../../../common/types/Dashboards';
@@ -23,6 +24,7 @@ type Props = {
   expandedChart?: string;
   expandHandler: (expandedChart?: string) => void;
   labelPrettifier?: (key: string, value: string) => string;
+  colors?: string[];
 };
 
 type State = {
@@ -76,7 +78,8 @@ export class Dashboard extends React.Component<Props, State> {
   }
 
   private renderChart(chart: ChartModel, expandHandler?: () => void) {
-    const dataSupplier = getDataSupplier(chart, { values: this.props.labelValues, prettifier: this.props.labelPrettifier });
+    const colors = this.props.colors || getTheme(ChartThemeColor.multi, ChartThemeVariant.default).chart.colorScale;
+    const dataSupplier = getDataSupplier(chart, { values: this.props.labelValues, prettifier: this.props.labelPrettifier }, colors);
     return (
       <KChart
         key={chart.name}

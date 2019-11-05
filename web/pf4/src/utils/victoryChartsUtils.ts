@@ -3,21 +3,19 @@ import { VCLines, LegendInfo, VCLine, LegendItem } from '../types/VictoryChartIn
 import { filterAndNameMetric, filterAndNameHistogram, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
 
-const toVCLine = (dps: Datapoint[], unit: string, title: string, color?: string): VCLine => {
+const toVCLine = (dps: Datapoint[], unit: string, title: string, color: string): VCLine => {
   const datapoints = dps
     .map(dp => {
       return {
         name: title,
         x: new Date(dp[0] * 1000) as any,
         y: Number(dp[1]),
-        unit: unit
+        unit: unit,
+        color: color
       };
     })
     .filter(dp => !isNaN(dp.y));
-  const legendItem: LegendItem = { name: title };
-  if (color) {
-    legendItem.symbol = { fill: color };
-  }
+  const legendItem: LegendItem = { name: title, symbol: { fill: color }};
   return {
     datapoints: datapoints,
     legendItem: legendItem,
@@ -25,44 +23,48 @@ const toVCLine = (dps: Datapoint[], unit: string, title: string, color?: string)
   };
 };
 
-const toVCLines = (ts: TimeSeries[], unit: string, colors?: string[], title?: string): VCLines => {
-  return ts.map((line, idx) => {
+let colorsIdx = 0;
+const toVCLines = (ts: TimeSeries[], unit: string, colors: string[], title?: string): VCLines => {
+  return ts.map(line => {
     const name = title || line.name || '';
-    const color = colors ? colors[idx % colors.length] : undefined;
+    const color = colors[colorsIdx % colors.length];
+    colorsIdx++;
     return toVCLine(line.values, unit, name, color);
   });
 };
 
-const histogramToVCLines = (histogram: Histogram, unit: string): VCLines => {
+const histogramToVCLines = (histogram: Histogram, unit: string, colors: string[]): VCLines => {
   // Flat-map histo_stat * series
   const stats = Object.keys(histogram);
   let allLines: VCLines = [];
   stats.forEach(statName => {
-    const lines = toVCLines(histogram[statName], unit);
+    const lines = toVCLines(histogram[statName], unit, colors);
     allLines = allLines.concat(lines);
   });
   return allLines;
 };
 
-const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labels: LabelsInfo, unit: string): () => VCLines => {
+const metricsDataSupplier = (chartName: string, metrics: TimeSeries[], labels: LabelsInfo, unit: string, colors: string[]): () => VCLines => {
   return () => {
+    colorsIdx = 0;
     const filtered = filterAndNameMetric(chartName, metrics, labels);
-    return toVCLines(filtered, unit);
+    return toVCLines(filtered, unit, colors);
   };
 };
 
-const histogramDataSupplier = (histogram: Histogram, labels: LabelsInfo, unit: string): () => VCLines => {
+const histogramDataSupplier = (histogram: Histogram, labels: LabelsInfo, unit: string, colors: string[]): () => VCLines => {
   return () => {
+    colorsIdx = 0;
     const filtered = filterAndNameHistogram(histogram, labels);
-    return histogramToVCLines(filtered, unit);
+    return histogramToVCLines(filtered, unit, colors);
   };
 };
 
-export const getDataSupplier = (chart: ChartModel, labels: LabelsInfo): (() => VCLines) => {
+export const getDataSupplier = (chart: ChartModel, labels: LabelsInfo, colors: string[]): (() => VCLines) => {
   if (chart.metric) {
-    return metricsDataSupplier(chart.name, chart.metric, labels, chart.unit);
+    return metricsDataSupplier(chart.name, chart.metric, labels, chart.unit, colors);
   } else if (chart.histogram) {
-    return histogramDataSupplier(chart.histogram, labels, chart.unit);
+    return histogramDataSupplier(chart.histogram, labels, chart.unit, colors);
   }
   return () => ([]);
 };
