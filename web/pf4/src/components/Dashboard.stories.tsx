@@ -1,5 +1,6 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
+import { getTheme, ChartThemeColor, ChartThemeVariant } from '@patternfly/react-charts';
 import { Dashboard } from './Dashboard';
 import { emptyDashboard, generateRandomDashboard } from '../types/__mocks__/Dashboards.mock';
 
@@ -11,6 +12,12 @@ storiesOf('PF4 Dashboard', module)
   .add('with data', () => (
     <Dashboard dashboard={generateRandomDashboard('Dashboard with data', 'dashboard-seed')} labelValues={labels} expandHandler={() => {}} />
   ))
+  .add('with gold theme', () => {
+    const colors = getTheme(ChartThemeColor.gold, ChartThemeVariant.dark).chart.colorScale;
+    return (
+      <Dashboard dashboard={generateRandomDashboard('Dashboard with data', 'dashboard-seed')} labelValues={labels} expandHandler={() => {}} colors={colors} />
+    );
+  })
   .add('empty', () => (
     <Dashboard dashboard={emptyDashboard} labelValues={new Map()} expandHandler={() => {}} />
   ))

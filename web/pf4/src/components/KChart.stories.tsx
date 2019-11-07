@@ -8,6 +8,7 @@ import '@patternfly/react-core/dist/styles/base.css';
 
 const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 12, 'kchart-seed');
 const histogram = generateRandomHistogramChart('Random histogram chart', 12, 'kchart-histo-seed');
+const colors = ['red', 'green', 'blue'];
 
 const reset = () => {
   metric.chartType = undefined;
@@ -18,30 +19,30 @@ const reset = () => {
 storiesOf('PF4 KChart', module)
   .add('as lines', () => {
     reset();
-    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels)!()} />;
+    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
   })
   .add('as areas', () => {
     reset();
     metric.chartType = 'area';
-    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels)!()} />;
+    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
   })
   .add('as bars', () => {
     reset();
     metric.chartType = 'bar';
-    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels)!()} />;
+    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
   })
   .add('with min=20, max=100', () => {
     reset();
     metric.min = 20;
     metric.max = 100;
-    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels)!()} />;
+    return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
   })
   .add('histogram', () => (
-    <KChart chart={histogram} data={getDataSupplier(histogram, emptyLabels)!()} />
+    <KChart chart={histogram} data={getDataSupplier(histogram, emptyLabels, colors)!()} />
   ))
   .add('empty', () => (
-    <KChart chart={empty} data={getDataSupplier(empty, emptyLabels)!()} />
+    <KChart chart={empty} data={getDataSupplier(empty, emptyLabels, colors)!()} />
   ))
   .add('with error', () => (
-    <KChart chart={error} data={getDataSupplier(empty, emptyLabels)!()} />
+    <KChart chart={error} data={getDataSupplier(empty, emptyLabels, colors)!()} />
   ));
