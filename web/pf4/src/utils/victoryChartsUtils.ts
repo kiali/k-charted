@@ -2,24 +2,23 @@ import { TimeSeries, Histogram, Datapoint } from '../../../common/types/Metrics'
 import { VCLines, LegendInfo, VCLine, LegendItem } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, filterAndNameHistogram, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
+import { Overlay, VCOverlay } from '../types/Overlay';
 
-const toVCLine = (dps: Datapoint[], unit: string, title: string, color: string): VCLine => {
+export const toVCLine = (dps: Datapoint[], dpInject: { name: string, unit: string, color: string } & any): VCLine => {
   const datapoints = dps
     .map(dp => {
       return {
-        name: title,
         x: new Date(dp[0] * 1000) as any,
         y: Number(dp[1]),
-        unit: unit,
-        color: color
+        ...dpInject
       };
     })
     .filter(dp => !isNaN(dp.y));
-  const legendItem: LegendItem = { name: title, symbol: { fill: color }};
+  const legendItem: LegendItem = { name: dpInject.name, symbol: { fill: dpInject.color }};
   return {
     datapoints: datapoints,
     legendItem: legendItem,
-    color: color
+    color: dpInject.color
   };
 };
 
@@ -29,7 +28,7 @@ const toVCLines = (ts: TimeSeries[], unit: string, colors: string[], title?: str
     const name = title || line.name || '';
     const color = colors[colorsIdx % colors.length];
     colorsIdx++;
-    return toVCLine(line.values, unit, name, color);
+    return toVCLine(line.values, { name: name, unit: unit, color: color });
   });
 };
 
@@ -88,5 +87,21 @@ export const buildLegendInfo = (series: VCLines, chartWidth: number): LegendInfo
   return {
     height: 15 + 30 * nbRows,
     itemsPerRow: itemsPerRow
+  };
+};
+
+export const toVCOverlay = (overlay: Overlay): VCOverlay => {
+  const dpInject = {
+    name: overlay.title,
+    unit: overlay.unit,
+    color: overlay.color,
+    symbol: overlay.symbol,
+    size: overlay.size
+  };
+  const vcLine = toVCLine(overlay.datapoints, dpInject);
+  vcLine.legendItem.symbol.type = overlay.symbol;
+  return {
+    data: vcLine,
+    origin: overlay
   };
 };

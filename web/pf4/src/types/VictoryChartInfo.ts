@@ -11,7 +11,7 @@ export type VCDataPoint = {
 
 export type LegendItem = {
   name: string;
-  symbol?: { fill?: string; type?: string };
+  symbol: { fill: string; type?: string };
 };
 
 export type VCLine = {
