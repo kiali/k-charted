@@ -11,7 +11,7 @@ import { buildLegendInfo } from '../utils/victoryChartsUtils';
 
 type Props = {
   data: VCLines;
-  seriesComponent: any;
+  seriesComponent: React.ReactElement;
   unit: string;
   chartHeight?: number;
   groupOffset?: number;
@@ -58,14 +58,25 @@ class ChartWithLegend extends React.Component<Props, State> {
 
     const dataWithOverlay = this.props.overlay ? this.props.data.concat(this.props.overlay.data) : this.props.data;
     const overlayIdx = this.props.data.length;
+    const showOverlay = this.props.overlay && !this.state.hiddenSeries.has(overlayIdx);
+    const overlayRightPadding = showOverlay ? 30 : 0;
+
     const legend = buildLegendInfo(dataWithOverlay, this.state.width);
     const height = 300 + legend.height;
-    const padding = { top: 10, bottom: 20, left: 40, right: 10 };
+    const padding = { top: 10, bottom: 20, left: 40, right: 10 + overlayRightPadding };
     padding.bottom += legend.height;
 
     const events = this.props.data.map((_, idx) => this.registerEvents(idx, 'serie-' + idx));
+    let overlayFactor = 1.0;
     if (this.props.overlay) {
       events.push(this.registerEvents(overlayIdx, 'overlay'));
+      // Normalization for y-axis display to match y-axis domain of the main data
+      // (see https://formidable.com/open-source/victory/gallery/multiple-dependent-axes/)
+      const mainMax = Math.max(...this.props.data.map(line => Math.max(...line.datapoints.map(d => d.y))));
+      const overlayMax = Math.max(...this.props.overlay.data.datapoints.map(d => d.y));
+      if (overlayMax !== 0) {
+        overlayFactor = mainMax / overlayMax;
+      }
     }
 
     return (
@@ -92,8 +103,8 @@ class ChartWithLegend extends React.Component<Props, State> {
               });
             })}
           </ChartGroup>
-          {this.props.overlay && !this.state.hiddenSeries.has(overlayIdx) && (
-            <ChartScatter key="overlay" name="overlay" data={this.props.overlay.data.datapoints} style={{ data: this.props.overlay.origin.dataStyle }} />
+          {showOverlay && (
+            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.origin.dataStyle }} />
           )}
           <ChartAxis
             tickCount={scaleInfo.count}
@@ -105,6 +116,17 @@ class ChartWithLegend extends React.Component<Props, State> {
             tickFormat={getFormatter(d3Format, this.props.unit)}
             style={{ tickLabels: {fontSize: 12, padding: 2} }}
           />
+          {showOverlay && (
+            <ChartAxis
+              dependentAxis={true}
+              offsetX={this.state.width - overlayRightPadding}
+              style={{
+                axisLabel: { padding: -25 }
+              }}
+              tickFormat={t => getFormatter(d3Format, this.props.overlay!.origin.unit)(t / overlayFactor)}
+              label={this.props.overlay!.origin.title}
+            />
+          )}
           <VictoryLegend
             name={'serie-legend'}
             data={dataWithOverlay.map((s, idx) => {
@@ -199,6 +221,10 @@ class ChartWithLegend extends React.Component<Props, State> {
       count: Math.min(15, ticks),
       format: '%H:%M:%S'
     };
+  }
+
+  private normalizeOverlay(factor: number) {
+    return this.props.overlay!.data.datapoints.map(dp => ({ ...dp, y: dp.y * factor, actualY: dp.y }));
   }
 }
 

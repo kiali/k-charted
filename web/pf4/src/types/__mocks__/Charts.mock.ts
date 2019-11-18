@@ -85,9 +85,9 @@ export const generateRandomHistogramChart = (title: string, spans: SpanValue, se
 
 export const generateRandomOverlay = (): Overlay => {
   return {
-    datapoints: genSingle(0, 50),
+    datapoints: genSingle(0, 50).map(pair => [pair[0], pair[1] / 100]),
     title: 'Span duration',
-    unit: 'ms',
+    unit: 'seconds',
     dataStyle: { fill: 'pink' },
     color: 'pink',
     symbol: 'star',
