@@ -6,14 +6,14 @@ import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/
 
 import { ChartModel } from '../../../common/types/Dashboards';
 import { VCLines } from '../types/VictoryChartInfo';
-import { VCOverlay } from '../types/Overlay';
+import { Overlay } from '../types/Overlay';
 import ChartWithLegend from './ChartWithLegend';
 
 type KChartProps = {
   chart: ChartModel;
   data: VCLines;
   expandHandler?: () => void;
-  overlay?: VCOverlay;
+  overlay?: Overlay;
 };
 
 const expandBlockStyle: React.CSSProperties = {

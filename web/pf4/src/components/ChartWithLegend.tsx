@@ -5,7 +5,7 @@ import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
 import { VCLines } from '../types/VictoryChartInfo';
-import { VCOverlay } from '../types/Overlay';
+import { Overlay } from '../types/Overlay';
 import { createContainer } from './Container';
 import { buildLegendInfo } from '../utils/victoryChartsUtils';
 
@@ -18,7 +18,7 @@ type Props = {
   fill?: boolean;
   stroke?: boolean;
   moreChartProps?: ChartProps;
-  overlay?: VCOverlay;
+  overlay?: Overlay;
 };
 
 type State = {
@@ -32,7 +32,8 @@ class ChartWithLegend extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.containerRef = React.createRef<HTMLDivElement>();
-    this.state = { width: 0, hiddenSeries: new Set() };
+    // Hidden series is initialized with the overlay index ( = data length )
+    this.state = { width: 0, hiddenSeries: new Set([props.data.length]) };
   }
 
   handleResize = () => {
@@ -56,7 +57,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     const scaleInfo = this.scaledAxisInfo(this.props.data);
     const groupOffset = this.props.groupOffset || 0;
 
-    const dataWithOverlay = this.props.overlay ? this.props.data.concat(this.props.overlay.data) : this.props.data;
+    const dataWithOverlay = this.props.overlay ? this.props.data.concat(this.props.overlay.vcLine) : this.props.data;
     const overlayIdx = this.props.data.length;
     const showOverlay = this.props.overlay && !this.state.hiddenSeries.has(overlayIdx);
     const overlayRightPadding = showOverlay ? 30 : 0;
@@ -73,7 +74,7 @@ class ChartWithLegend extends React.Component<Props, State> {
       // Normalization for y-axis display to match y-axis domain of the main data
       // (see https://formidable.com/open-source/victory/gallery/multiple-dependent-axes/)
       const mainMax = Math.max(...this.props.data.map(line => Math.max(...line.datapoints.map(d => d.y))));
-      const overlayMax = Math.max(...this.props.overlay.data.datapoints.map(d => d.y));
+      const overlayMax = Math.max(...this.props.overlay.vcLine.datapoints.map(d => d.y));
       if (overlayMax !== 0) {
         overlayFactor = mainMax / overlayMax;
       }
@@ -104,7 +105,7 @@ class ChartWithLegend extends React.Component<Props, State> {
             })}
           </ChartGroup>
           {showOverlay && (
-            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.origin.dataStyle }} />
+            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.info.dataStyle }} />
           )}
           <ChartAxis
             tickCount={scaleInfo.count}
@@ -123,15 +124,15 @@ class ChartWithLegend extends React.Component<Props, State> {
               style={{
                 axisLabel: { padding: -25 }
               }}
-              tickFormat={t => getFormatter(d3Format, this.props.overlay!.origin.unit)(t / overlayFactor)}
-              label={this.props.overlay!.origin.title}
+              tickFormat={t => getFormatter(d3Format, this.props.overlay ? this.props.overlay.info.unit : '')(t / overlayFactor)}
+              label={this.props.overlay!.info.title}
             />
           )}
           <VictoryLegend
             name={'serie-legend'}
             data={dataWithOverlay.map((s, idx) => {
               if (this.state.hiddenSeries.has(idx)) {
-                return { ...s.legendItem, symbol: { fill: '#72767b' } };
+                return { ...s.legendItem, symbol: { ...s.legendItem.symbol, fill: '#72767b' } };
               }
               return s.legendItem;
             })}
@@ -224,7 +225,7 @@ class ChartWithLegend extends React.Component<Props, State> {
   }
 
   private normalizeOverlay(factor: number) {
-    return this.props.overlay!.data.datapoints.map(dp => ({ ...dp, y: dp.y * factor, actualY: dp.y }));
+    return this.props.overlay!.vcLine.datapoints.map(dp => ({ ...dp, y: dp.y * factor, actualY: dp.y }));
   }
 }
 

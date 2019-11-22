@@ -1,8 +1,6 @@
-import { Datapoint } from '../../../common/types/Metrics';
 import { VCLine } from './VictoryChartInfo';
 
-export type Overlay = {
-  datapoints: Datapoint[],
+export type OverlayInfo = {
   title: string,
   unit: string,
   dataStyle: any, // see "data" in https://formidable.com/open-source/victory/docs/common-props/#style
@@ -11,7 +9,7 @@ export type Overlay = {
   size: number
 };
 
-export type VCOverlay = {
-  data: VCLine,
-  origin: Overlay
+export type Overlay = {
+  vcLine: VCLine,
+  info: OverlayInfo
 };
