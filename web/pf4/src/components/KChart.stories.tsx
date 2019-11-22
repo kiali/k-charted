@@ -1,8 +1,8 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import KChart from './KChart';
-import { getDataSupplier } from '../utils/victoryChartsUtils';
-import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, emptyLabels } from '../types/__mocks__/Charts.mock';
+import { getDataSupplier, toVCOverlay } from '../utils/victoryChartsUtils';
+import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, generateRandomOverlay, emptyLabels } from '../types/__mocks__/Charts.mock';
 
 import '@patternfly/react-core/dist/styles/base.css';
 
@@ -36,6 +36,13 @@ storiesOf('PF4 KChart', module)
     metric.min = 20;
     metric.max = 100;
     return <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
+  })
+  .add('with overlay', () => {
+    reset();
+    const overlay = generateRandomOverlay();
+    return (
+      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toVCOverlay(overlay)} />
+    );
   })
   .add('histogram', () => (
     <KChart chart={histogram} data={getDataSupplier(histogram, emptyLabels, colors)!()} />

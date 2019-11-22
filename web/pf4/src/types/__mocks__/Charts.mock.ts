@@ -2,6 +2,7 @@ import { ChartModel, SpanValue } from '../../../../common/types/Dashboards';
 import { TimeSeries } from '../../../../common/types/Metrics';
 import seedrandom from 'seedrandom';
 import { LabelsInfo } from '../../../../common/utils/timeSeriesUtils';
+import { Overlay } from '../Overlay';
 
 const t0 = 1556802000;
 const increment = 60;
@@ -79,6 +80,18 @@ export const generateRandomHistogramChart = (title: string, spans: SpanValue, se
     unit: 'bitrate',
     spans: spans,
     histogram: histo
+  };
+};
+
+export const generateRandomOverlay = (): Overlay => {
+  return {
+    datapoints: genSingle(0, 50).map(pair => [pair[0], pair[1] / 100]),
+    title: 'Span duration',
+    unit: 'seconds',
+    dataStyle: { fill: 'pink' },
+    color: 'pink',
+    symbol: 'star',
+    size: 15
   };
 };
 
