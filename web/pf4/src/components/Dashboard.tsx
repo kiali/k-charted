@@ -25,6 +25,7 @@ type Props = {
   expandedChart?: string;
   expandHandler: (expandedChart?: string) => void;
   labelPrettifier?: (key: string, value: string) => string;
+  onClick?: (chart: ChartModel, datum: any) => void;
   colors?: string[];
   overlay?: Overlay;
 };
@@ -82,6 +83,10 @@ export class Dashboard extends React.Component<Props, State> {
   private renderChart(chart: ChartModel, expandHandler?: () => void) {
     const colors = this.props.colors || getTheme(ChartThemeColor.multi, ChartThemeVariant.default).chart.colorScale;
     const dataSupplier = getDataSupplier(chart, { values: this.props.labelValues, prettifier: this.props.labelPrettifier }, colors);
+    let onClick: ((datum: any) => void) | undefined = undefined;
+    if (this.props.onClick) {
+      onClick = (datum: any) => this.props.onClick!(chart, datum);
+    }
     return (
       <KChart
         key={chart.name}
@@ -89,6 +94,7 @@ export class Dashboard extends React.Component<Props, State> {
         data={dataSupplier()}
         expandHandler={expandHandler}
         overlay={this.props.overlay}
+        onClick={onClick}
       />
     );
   }

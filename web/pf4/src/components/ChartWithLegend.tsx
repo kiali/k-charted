@@ -19,6 +19,7 @@ type Props = {
   stroke?: boolean;
   moreChartProps?: ChartProps;
   overlay?: Overlay;
+  onClick?: (datum: any) => void;
 };
 
 type State = {
@@ -79,6 +80,22 @@ class ChartWithLegend extends React.Component<Props, State> {
         overlayFactor = mainMax / overlayMax;
       }
     }
+    const dataEvents: any[] = [];
+    if (this.props.onClick) {
+      dataEvents.push({
+        target: 'data',
+        eventHandlers: {
+          onClick: (event, target) => {
+            const pos = event.clientX - padding.left;
+            const size = this.state.width - padding.left - padding.right;
+            const ratio = pos / size;
+            const idx = Math.floor(ratio * target.data.length);
+            this.props.onClick!(target.data[idx]);
+            return [];
+          }
+        }
+      });
+    }
 
     return (
       <div ref={this.containerRef}>
@@ -100,12 +117,13 @@ class ChartWithLegend extends React.Component<Props, State> {
                 key: 'serie-' + idx,
                 name: 'serie-' + idx,
                 data: serie.datapoints,
+                events: dataEvents,
                 style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }}
               });
             })}
           </ChartGroup>
           {showOverlay && (
-            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.info.dataStyle }} />
+            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
           )}
           <ChartAxis
             tickCount={scaleInfo.count}

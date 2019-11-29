@@ -13,6 +13,7 @@ type KChartProps = {
   chart: ChartModel;
   data: VCLines;
   expandHandler?: () => void;
+  onClick?: (datum: any) => void;
   overlay?: Overlay;
 };
 
@@ -97,6 +98,7 @@ class KChart extends React.Component<KChartProps, {}> {
           overlay={this.props.overlay}
           unit={this.props.chart.unit}
           moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
+          onClick={this.props.onClick}
         />
       </>
     );
