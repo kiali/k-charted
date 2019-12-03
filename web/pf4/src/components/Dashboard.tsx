@@ -6,9 +6,10 @@ import { getTheme, ChartThemeColor, ChartThemeVariant } from '@patternfly/react-
 
 import { AllPromLabelsValues } from '../../../common/types/Labels';
 import { DashboardModel, ChartModel } from '../../../common/types/Dashboards';
-import { getDataSupplier, toVCOverlay } from '../utils/victoryChartsUtils';
-import { Overlay, VCOverlay } from '../types/Overlay';
+import { getDataSupplier } from '../utils/victoryChartsUtils';
+import { Overlay } from '../types/Overlay';
 import KChart from './KChart';
+import { VCDataPoint } from '../types/VictoryChartInfo';
 
 const expandedChartContainerStyle = style({
   height: 'calc(100vh - 248px)'
@@ -25,6 +26,7 @@ type Props = {
   expandedChart?: string;
   expandHandler: (expandedChart?: string) => void;
   labelPrettifier?: (key: string, value: string) => string;
+  onClick?: (chart: ChartModel, datum: VCDataPoint) => void;
   colors?: string[];
   overlay?: Overlay;
 };
@@ -58,9 +60,8 @@ export class Dashboard extends React.Component<Props, State> {
   }
 
   renderMetrics() {
-    const overlay = this.props.overlay ? toVCOverlay(this.props.overlay) : undefined;
     return (
-      <Grid>{this.props.dashboard.charts.map(c => this.renderChartCard(c, overlay))}</Grid>
+      <Grid>{this.props.dashboard.charts.map(c => this.renderChartCard(c))}</Grid>
     );
   }
 
@@ -72,24 +73,29 @@ export class Dashboard extends React.Component<Props, State> {
     return undefined;
   }
 
-  private renderChartCard(chart: ChartModel, overlay?: VCOverlay) {
+  private renderChartCard(chart: ChartModel) {
     return (
       <GridItem span={chart.spans} key={chart.name}>
-        {this.renderChart(chart, () => this.expandHandler(chart.name), overlay)}
+        {this.renderChart(chart, () => this.expandHandler(chart.name))}
       </GridItem>
     );
   }
 
-  private renderChart(chart: ChartModel, expandHandler?: () => void, overlay?: VCOverlay) {
+  private renderChart(chart: ChartModel, expandHandler?: () => void) {
     const colors = this.props.colors || getTheme(ChartThemeColor.multi, ChartThemeVariant.default).chart.colorScale;
     const dataSupplier = getDataSupplier(chart, { values: this.props.labelValues, prettifier: this.props.labelPrettifier }, colors);
+    let onClick: ((datum: VCDataPoint) => void) | undefined = undefined;
+    if (this.props.onClick) {
+      onClick = (datum: VCDataPoint) => this.props.onClick!(chart, datum);
+    }
     return (
       <KChart
         key={chart.name}
         chart={chart}
         data={dataSupplier()}
         expandHandler={expandHandler}
-        overlay={overlay}
+        overlay={this.props.overlay}
+        onClick={onClick}
       />
     );
   }

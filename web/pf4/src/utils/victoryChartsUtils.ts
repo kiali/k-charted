@@ -1,20 +1,23 @@
 import { TimeSeries, Histogram, Datapoint } from '../../../common/types/Metrics';
-import { VCLines, LegendInfo, VCLine, LegendItem } from '../types/VictoryChartInfo';
+import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, filterAndNameHistogram, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
-import { Overlay, VCOverlay } from '../types/Overlay';
+import { Overlay, OverlayInfo } from '../types/Overlay';
 
-export const toVCLine = (dps: Datapoint[], dpInject: { name: string, unit: string, color: string } & any): VCLine => {
-  const datapoints = dps
-    .map(dp => {
+export const toVCDatapoints = (dps: Datapoint[], name: string): VCDataPoint[] => {
+  return dps.map(dp => {
       return {
+        name: name,
         x: new Date(dp[0] * 1000) as any,
         y: Number(dp[1]),
-        ...dpInject
       };
     })
     .filter(dp => !isNaN(dp.y));
-  const legendItem: LegendItem = { name: dpInject.name, symbol: { fill: dpInject.color }};
+};
+
+export const toVCLine = (dps: VCDataPoint[], dpInject: { unit: string, color: string } & any): VCLine => {
+  const datapoints = dps.map(dp => ({ ...dpInject, ...dp }));
+  const legendItem: LegendItem = { name: dpInject.name, symbol: { fill: dpInject.color, type: dpInject.symbol }};
   return {
     datapoints: datapoints,
     legendItem: legendItem,
@@ -28,7 +31,7 @@ const toVCLines = (ts: TimeSeries[], unit: string, colors: string[], title?: str
     const name = title || line.name || '';
     const color = colors[colorsIdx % colors.length];
     colorsIdx++;
-    return toVCLine(line.values, { name: name, unit: unit, color: color });
+    return toVCLine(toVCDatapoints(line.values, name), { name: name, unit: unit, color: color });
   });
 };
 
@@ -90,18 +93,16 @@ export const buildLegendInfo = (series: VCLines, chartWidth: number): LegendInfo
   };
 };
 
-export const toVCOverlay = (overlay: Overlay): VCOverlay => {
+export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {
   const dpInject = {
-    name: overlay.title,
-    unit: overlay.unit,
-    color: overlay.color,
-    symbol: overlay.symbol,
-    size: overlay.size
+    name: info.title,
+    unit: info.unit,
+    color: info.color,
+    symbol: info.symbol,
+    size: info.size
   };
-  const vcLine = toVCLine(overlay.datapoints, dpInject);
-  vcLine.legendItem.symbol.type = overlay.symbol;
   return {
-    data: vcLine,
-    origin: overlay
+    info: info,
+    vcLine: toVCLine(dps, dpInject)
   };
 };

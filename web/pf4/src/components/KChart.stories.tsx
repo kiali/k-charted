@@ -1,10 +1,11 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import KChart from './KChart';
-import { getDataSupplier, toVCOverlay } from '../utils/victoryChartsUtils';
-import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, generateRandomOverlay, emptyLabels } from '../types/__mocks__/Charts.mock';
+import { getDataSupplier, toOverlay, toVCLine, toVCDatapoints } from '../utils/victoryChartsUtils';
+import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, generateRandomForOverlay, emptyLabels } from '../types/__mocks__/Charts.mock';
 
 import '@patternfly/react-core/dist/styles/base.css';
+import { OverlayInfo } from '../types/Overlay';
 
 const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 12, 'kchart-seed');
 const histogram = generateRandomHistogramChart('Random histogram chart', 12, 'kchart-histo-seed');
@@ -39,9 +40,17 @@ storiesOf('PF4 KChart', module)
   })
   .add('with overlay', () => {
     reset();
-    const overlay = generateRandomOverlay();
+    const info: OverlayInfo = {
+      title: 'Span duration',
+      unit: 'seconds',
+      dataStyle: { fill: 'pink' },
+      color: 'pink',
+      symbol: 'star',
+      size: 15
+    };
+    const dps = toVCDatapoints(generateRandomForOverlay(), info.title);
     return (
-      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toVCOverlay(overlay)} />
+      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} />
     );
   })
   .add('histogram', () => (
