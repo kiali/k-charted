@@ -14,6 +14,7 @@ storiesOf('PF4 Dashboard', module)
       dashboard={generateRandomDashboard('Dashboard with data', 'dashboard-seed')}
       labelValues={labels}
       expandHandler={() => {}}
+      onClick={(chart, dp) => alert(`${chart.name} - ${dp.name}: [${dp.x}, ${dp.y}]`)}
     />
   ))
   .add('with gold theme', () => {

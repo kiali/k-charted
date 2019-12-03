@@ -9,33 +9,33 @@ import { VCLine } from '../types/VictoryChartInfo';
 const traces: VCLine = {
   datapoints: [{
     x: 0,
-    y: 62,
+    y: 0.62,
     name: 'Trace 1',
-    unit: 'ms',
+    unit: 'seconds',
     size: 8
   }, {
     x: 4,
-    y: 80,
+    y: 0.80,
     name: 'Trace 2',
-    unit: 'ms',
+    unit: 'seconds',
     size: 4
   }, {
     x: 5,
-    y: 83,
+    y: 0.83,
     name: 'Trace 3',
-    unit: 'ms',
+    unit: 'seconds',
     size: 4
   }, {
     x: 8,
-    y: 45,
+    y: 0.45,
     name: 'Trace 4',
-    unit: 'ms',
+    unit: 'seconds',
     size: 5
   }, {
     x: 16,
-    y: 152,
+    y: 0.152,
     name: 'Trace 5',
-    unit: 'ms',
+    unit: 'seconds',
     size: 10
   }] as any,
   legendItem: {
@@ -45,5 +45,5 @@ const traces: VCLine = {
 
 storiesOf('ChartWithLegend', module)
   .add('as scatter plots', () => {
-    return <ChartWithLegend data={[traces]} unit="ms" seriesComponent={(<ChartScatter/>)} />;
+    return <ChartWithLegend data={[traces]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
   });

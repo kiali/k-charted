@@ -9,6 +9,7 @@ import { DashboardModel, ChartModel } from '../../../common/types/Dashboards';
 import { getDataSupplier } from '../utils/victoryChartsUtils';
 import { Overlay } from '../types/Overlay';
 import KChart from './KChart';
+import { VCDataPoint } from '../types/VictoryChartInfo';
 
 const expandedChartContainerStyle = style({
   height: 'calc(100vh - 248px)'
@@ -25,7 +26,7 @@ type Props = {
   expandedChart?: string;
   expandHandler: (expandedChart?: string) => void;
   labelPrettifier?: (key: string, value: string) => string;
-  onClick?: (chart: ChartModel, datum: any) => void;
+  onClick?: (chart: ChartModel, datum: VCDataPoint) => void;
   colors?: string[];
   overlay?: Overlay;
 };
@@ -83,9 +84,9 @@ export class Dashboard extends React.Component<Props, State> {
   private renderChart(chart: ChartModel, expandHandler?: () => void) {
     const colors = this.props.colors || getTheme(ChartThemeColor.multi, ChartThemeVariant.default).chart.colorScale;
     const dataSupplier = getDataSupplier(chart, { values: this.props.labelValues, prettifier: this.props.labelPrettifier }, colors);
-    let onClick: ((datum: any) => void) | undefined = undefined;
+    let onClick: ((datum: VCDataPoint) => void) | undefined = undefined;
     if (this.props.onClick) {
-      onClick = (datum: any) => this.props.onClick!(chart, datum);
+      onClick = (datum: VCDataPoint) => this.props.onClick!(chart, datum);
     }
     return (
       <KChart

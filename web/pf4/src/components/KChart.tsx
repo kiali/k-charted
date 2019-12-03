@@ -5,7 +5,7 @@ import { ChartArea, ChartBar, ChartLine } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
 import { ChartModel } from '../../../common/types/Dashboards';
-import { VCLines } from '../types/VictoryChartInfo';
+import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import ChartWithLegend from './ChartWithLegend';
 
@@ -13,7 +13,7 @@ type KChartProps = {
   chart: ChartModel;
   data: VCLines;
   expandHandler?: () => void;
-  onClick?: (datum: any) => void;
+  onClick?: (datum: VCDataPoint) => void;
   overlay?: Overlay;
 };
 

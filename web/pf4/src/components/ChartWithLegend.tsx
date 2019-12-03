@@ -4,7 +4,7 @@ import { VictoryLegend, VictoryPortal, VictoryLabel } from 'victory';
 import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
-import { VCLines } from '../types/VictoryChartInfo';
+import { VCLines, VCDataPoint, VCLine } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { createContainer } from './Container';
 import { buildLegendInfo } from '../utils/victoryChartsUtils';
@@ -19,7 +19,7 @@ type Props = {
   stroke?: boolean;
   moreChartProps?: ChartProps;
   overlay?: Overlay;
-  onClick?: (datum: any) => void;
+  onClick?: (datum: VCDataPoint) => void;
 };
 
 type State = {
@@ -86,11 +86,23 @@ class ChartWithLegend extends React.Component<Props, State> {
         target: 'data',
         eventHandlers: {
           onClick: (event, target) => {
+            const series: VCDataPoint[] = target.data;
             const pos = event.clientX - padding.left;
             const size = this.state.width - padding.left - padding.right;
             const ratio = pos / size;
-            const idx = Math.floor(ratio * target.data.length);
-            this.props.onClick!(target.data[idx]);
+            const numFunc = (typeof series[0].x === 'object' ? x => x.getTime() : x => x);
+            const xLength = numFunc(series[series.length - 1].x) - numFunc(series[0].x);
+            const clickedX = numFunc(series[0].x) + ratio * xLength;
+            // Find closest point
+            const closest = series.reduce((p, c) => {
+              if (p === null) {
+                return c;
+              }
+              const dist = Math.abs(clickedX - numFunc(c.x));
+              const prevDist = Math.abs(clickedX - numFunc(p.x));
+              return dist < prevDist ? c : p;
+            });
+            this.props.onClick!(closest);
             return [];
           }
         }
