@@ -70,6 +70,7 @@ class ChartWithLegend extends React.Component<Props, State> {
 
     const events = this.props.data.map((_, idx) => this.registerEvents(idx, 'serie-' + idx));
     let overlayFactor = 1.0;
+    let useSecondAxis = this.props.overlay !== undefined;
     if (this.props.overlay) {
       events.push(this.registerEvents(overlayIdx, 'overlay'));
       // Normalization for y-axis display to match y-axis domain of the main data
@@ -78,6 +79,11 @@ class ChartWithLegend extends React.Component<Props, State> {
       const overlayMax = Math.max(...this.props.overlay.vcLine.datapoints.map(d => d.y));
       if (overlayMax !== 0) {
         overlayFactor = mainMax / overlayMax;
+      }
+      if (this.props.unit === this.props.overlay.info.unit && overlayFactor > 0.5 && overlayFactor < 2) {
+        // Looks like it's fine to re-use the existing axis
+        useSecondAxis = false;
+        overlayFactor = 1.0;
       }
     }
     const dataEvents: any[] = [];
@@ -120,6 +126,9 @@ class ChartWithLegend extends React.Component<Props, State> {
           scale={{x: 'time'}}
           {...this.props.moreChartProps}
         >
+          {showOverlay && (
+            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
+          )}
           <ChartGroup offset={groupOffset}>
             {this.props.data.map((serie, idx) => {
               if (this.state.hiddenSeries.has(idx)) {
@@ -134,9 +143,6 @@ class ChartWithLegend extends React.Component<Props, State> {
               });
             })}
           </ChartGroup>
-          {showOverlay && (
-            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
-          )}
           <ChartAxis
             tickCount={scaleInfo.count}
             style={{ tickLabels: {fontSize: 12, padding: 2} }}
@@ -147,7 +153,7 @@ class ChartWithLegend extends React.Component<Props, State> {
             tickFormat={getFormatter(d3Format, this.props.unit)}
             style={{ tickLabels: {fontSize: 12, padding: 2} }}
           />
-          {showOverlay && (
+          {useSecondAxis && (
             <ChartAxis
               dependentAxis={true}
               offsetX={this.state.width - overlayRightPadding}
@@ -171,6 +177,10 @@ class ChartWithLegend extends React.Component<Props, State> {
             height={legend.height}
             width={this.state.width}
             itemsPerRow={legend.itemsPerRow}
+            style={{
+              data: { cursor: 'pointer' },
+              labels: { cursor: 'pointer' }
+            }}
           />
         </Chart>
       </div>
