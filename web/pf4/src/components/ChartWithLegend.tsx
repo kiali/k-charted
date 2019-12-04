@@ -177,6 +177,10 @@ class ChartWithLegend extends React.Component<Props, State> {
             height={legend.height}
             width={this.state.width}
             itemsPerRow={legend.itemsPerRow}
+            style={{
+              data: { cursor: 'pointer' },
+              labels: { cursor: 'pointer' }
+            }}
           />
         </Chart>
       </div>
