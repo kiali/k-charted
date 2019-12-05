@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { style } from 'typestyle';
 import { Button, Text, TextContent, TextVariants } from '@patternfly/react-core';
-import { ChartArea, ChartBar, ChartLine } from '@patternfly/react-charts';
+import { ChartArea, ChartBar, ChartScatter, ChartLine } from '@patternfly/react-charts';
 import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
 import { ChartModel } from '../../../common/types/Dashboards';
@@ -78,6 +78,10 @@ class KChart extends React.Component<KChartProps, {}> {
       fill = true;
       stroke = false;
       seriesComponent = (<ChartBar/>);
+    } else if (this.props.chart.chartType === 'scatter') {
+      fill = true;
+      stroke = false;
+      seriesComponent = (<ChartScatter/>);
     }
 
     const groupOffset = this.props.chart.chartType === 'bar' ? 7 : 0;

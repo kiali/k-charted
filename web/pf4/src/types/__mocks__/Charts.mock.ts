@@ -40,6 +40,20 @@ export const generateRandomMetricChart = (title: string, names: string[], spans:
   };
 };
 
+
+export const generateRandomScatterChart = (title: string, names: string[], spans: SpanValue, seed?: string): ChartModel => {
+  if (seed) {
+    seedrandom(seed, { global: true });
+  }
+  return {
+    name: title,
+    unit: 'seconds',
+    chartType: 'scatter',
+    spans: spans,
+    metric: genSeries(names.map(n => ({ name: n, labels: {}})))
+  };
+};
+
 export const generateRandomMetricChartWithLabels = (title: string, metrics: MetricMock[], spans: SpanValue, seed?: string): ChartModel => {
   if (seed) {
     seedrandom(seed, { global: true });
