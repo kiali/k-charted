@@ -40,7 +40,6 @@ export const generateRandomMetricChart = (title: string, names: string[], spans:
   };
 };
 
-
 export const generateRandomScatterChart = (title: string, names: string[], spans: SpanValue, seed?: string): ChartModel => {
   if (seed) {
     seedrandom(seed, { global: true });
