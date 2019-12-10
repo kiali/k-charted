@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react';
 
 import '@patternfly/react-core/dist/styles/base.css';
 import ChartWithLegend from './ChartWithLegend';
-import { VCLine } from '../types/VictoryChartInfo';
+import { VCLine, makeLegend } from '../types/VictoryChartInfo';
 
 const traces: VCLine = {
   datapoints: [{
@@ -37,10 +37,8 @@ const traces: VCLine = {
     name: 'Trace 5',
     unit: 'seconds',
     size: 10
-  }] as any,
-  legendItem: {
-    name: 'span duration'
-  } as any
+  }],
+  legendItem: makeLegend('span duration', 'blue')
 };
 
 storiesOf('ChartWithLegend', module)

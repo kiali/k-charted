@@ -1,5 +1,5 @@
 import { TimeSeries, Histogram, Datapoint } from '../../../common/types/Metrics';
-import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint } from '../types/VictoryChartInfo';
+import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, filterAndNameHistogram, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
 import { Overlay, OverlayInfo } from '../types/Overlay';
@@ -17,7 +17,7 @@ export const toVCDatapoints = (dps: Datapoint[], name: string): VCDataPoint[] =>
 
 export const toVCLine = (dps: VCDataPoint[], dpInject: { unit: string, color: string } & any): VCLine => {
   const datapoints = dps.map(dp => ({ ...dpInject, ...dp }));
-  const legendItem: LegendItem = { name: dpInject.name, symbol: { fill: dpInject.color, type: dpInject.symbol }};
+  const legendItem: LegendItem = makeLegend(dpInject.name, dpInject.color, dpInject.symbo);
   return {
     datapoints: datapoints,
     legendItem: legendItem,
