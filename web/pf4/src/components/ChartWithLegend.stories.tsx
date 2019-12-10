@@ -46,38 +46,24 @@ storiesOf('ChartWithLegend', module)
     return <ChartWithLegend data={[traces]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
   });
 
+const datapoints: any[] = [];
+let seed = 1575987817125390;
+for (let _i = 0; _i < 50; _i++) {
+  datapoints.push(
+      {
+        x: seed,
+        y: Math.random(),
+        name: `Trace ${_i}`,
+        unit: 'seconds',
+        size: 8
+      }
+  );
+  seed += 1000000;
+}
+
+
 const tracesTime: VCLine = {
-  datapoints: [{
-    x: 1575987817125390,
-    y: 0.62,
-    name: 'Trace 1',
-    unit: 'seconds',
-    size: 8
-  }, {
-    x: 1575987818125390,
-    y: 0.80,
-    name: 'Trace 2',
-    unit: 'seconds',
-    size: 4
-  }, {
-    x: 1575987819125390,
-    y: 0.83,
-    name: 'Trace 3',
-    unit: 'seconds',
-    size: 4
-  }, {
-    x: 1575987820125390,
-    y: 0.45,
-    name: 'Trace 4',
-    unit: 'seconds',
-    size: 5
-  }, {
-    x: 1575987821125390,
-    y: 0.152,
-    name: 'Trace 5',
-    unit: 'seconds',
-    size: 10
-  }],
+  datapoints: datapoints,
   legendItem: makeLegend('span duration', 'blue')
 };
 
