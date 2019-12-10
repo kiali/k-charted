@@ -13,6 +13,7 @@ type Props = {
   data: VCLines;
   seriesComponent: React.ReactElement;
   unit: string;
+  xUnit?: string;
   chartHeight?: number;
   groupOffset?: number;
   fill?: boolean;
@@ -145,6 +146,7 @@ class ChartWithLegend extends React.Component<Props, State> {
           </ChartGroup>
           <ChartAxis
             tickCount={scaleInfo.count}
+            tickFormat={this.props.xUnit ? getFormatter(d3Format, this.props.xUnit) : undefined}
             style={{ tickLabels: {fontSize: 12, padding: 2} }}
           />
           <ChartAxis

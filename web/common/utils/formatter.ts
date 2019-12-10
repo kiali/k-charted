@@ -5,6 +5,8 @@ export const getFormatter = (d3Format: D3FormatFunc, unit: string) => {
     // Round to dismiss float imprecision
     val = Math.round(val * 10000) / 10000;
     switch (unit) {
+      case 'timestamp':
+        return formatDataDATE(val);
       case 'seconds':
         return formatSI(d3Format, val, 's');
       case 'bytes':
@@ -22,6 +24,17 @@ export const getFormatter = (d3Format: D3FormatFunc, unit: string) => {
         return formatDataSI(d3Format, val, unit);
     }
   };
+};
+
+const formatDataDATE = (val: number): string => {
+  const date = new Date(val / 1000);
+  // Hours part from the timestamp
+  const hours = date.getHours();
+  // Minutes part from the timestamp
+  const minutes = '0' + date.getMinutes();
+  // Seconds part from the timestamp
+  const seconds = '0' + date.getSeconds();
+  return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
 };
 
 const formatDataSI = (d3Format: D3FormatFunc, val: number, suffix: string): string => {
