@@ -106,3 +106,36 @@ export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {
     vcLine: toVCLine(dps, dpInject)
   };
 };
+
+const convertDomainCoord = (dps: VCDataPoint[], numFunc: (dp: VCDataPoint) => number, clickPos: number, areaSize: number): number => {
+  // Clicked position in screen coordinate (relative to svg element) are transformed in domain-data coordinate
+  //  This is assuming a linear scale and no data padding
+  const ratio = clickPos / areaSize;
+  const values = dps.map(dp => numFunc(dp));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return min + ratio * (max - min);
+};
+
+// findClosestDatapoint will search in all datapoints which is the closer to the given position in pixels
+//  This is done by converting screen coords into domain coords, then finding the least distance between this converted point and all the datapoints.
+export const findClosestDatapoint = (lines: VCLines, x: number, y: number, width: number, height: number): VCDataPoint | undefined => {
+  if (width <= 0 || height <= 0) {
+    return undefined;
+  }
+  const flat: VCDataPoint[] = lines.flatMap<VCDataPoint>(line => line.datapoints);
+  if (flat.length === 0) {
+    return undefined;
+  }
+  const xNumFunc: (dp: VCDataPoint) => number = typeof flat[0].x === 'object' ? dp => dp.x.getTime() : dp => dp.x;
+  const clickedX = convertDomainCoord(flat, xNumFunc, x, width);
+  const clickedY = convertDomainCoord(flat, dp => dp.y, height - y /* reversed y coords */, height);
+  return flat.reduce((p: VCDataPoint, c: VCDataPoint) => {
+    if (p === null) {
+      return c;
+    }
+    const dist = Math.abs(clickedX - xNumFunc(c)) + Math.abs(clickedY - c.y);
+    const prevDist = Math.abs(clickedX - xNumFunc(p)) + Math.abs(clickedY - p.y);
+    return dist < prevDist ? c : p;
+  });
+};
