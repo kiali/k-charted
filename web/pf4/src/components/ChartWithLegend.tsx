@@ -4,10 +4,10 @@ import { VictoryLegend, VictoryPortal, VictoryLabel } from 'victory';
 import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
-import { VCLines, VCDataPoint, VCLine } from '../types/VictoryChartInfo';
+import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { createContainer } from './Container';
-import { buildLegendInfo } from '../utils/victoryChartsUtils';
+import { buildLegendInfo, findClosestDatapoint } from '../utils/victoryChartsUtils';
 
 type Props = {
   data: VCLines;
@@ -64,7 +64,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     const overlayRightPadding = showOverlay ? 30 : 0;
 
     const legend = buildLegendInfo(dataWithOverlay, this.state.width);
-    const height = 300 + legend.height;
+    const height = (this.props.chartHeight || 300) + legend.height;
     const padding = { top: 10, bottom: 20, left: 40, right: 10 + overlayRightPadding };
     padding.bottom += legend.height;
 
@@ -91,24 +91,22 @@ class ChartWithLegend extends React.Component<Props, State> {
       dataEvents.push({
         target: 'data',
         eventHandlers: {
-          onClick: (event, target) => {
-            const series: VCDataPoint[] = target.data;
-            const pos = event.clientX - padding.left;
-            const size = this.state.width - padding.left - padding.right;
-            const ratio = pos / size;
-            const numFunc = (typeof series[0].x === 'object' ? x => x.getTime() : x => x);
-            const xLength = numFunc(series[series.length - 1].x) - numFunc(series[0].x);
-            const clickedX = numFunc(series[0].x) + ratio * xLength;
-            // Find closest point
-            const closest = series.reduce((p, c) => {
-              if (p === null) {
-                return c;
-              }
-              const dist = Math.abs(clickedX - numFunc(c.x));
-              const prevDist = Math.abs(clickedX - numFunc(p.x));
-              return dist < prevDist ? c : p;
-            });
-            this.props.onClick!(closest);
+          onClick: event => {
+            // We need to get coordinates relative to the SVG
+            const svg = event.target.viewportElement;
+            const pt = svg.createSVGPoint();
+            pt.x = event.clientX;
+            pt.y = event.clientY;
+            const clicked = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const closest = findClosestDatapoint(
+              this.props.data,
+              clicked.x - padding.left,
+              clicked.y - padding.top,
+              this.state.width - padding.left - padding.right,
+              height - padding.top - padding.bottom);
+            if (closest) {
+              this.props.onClick!(closest);
+            }
             return [];
           }
         }

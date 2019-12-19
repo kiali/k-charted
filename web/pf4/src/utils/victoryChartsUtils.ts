@@ -106,3 +106,43 @@ export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {
     vcLine: toVCLine(dps, dpInject)
   };
 };
+
+const createDomainConverter = (dps: VCDataPoint[], numFunc: (dp: VCDataPoint) => number) => {
+  // Clicked position in screen coordinate (relative to svg element) are transformed in domain-data coordinate
+  //  This is assuming a linear scale and no data padding
+  const values = dps.map(dp => numFunc(dp));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return {
+    // Convert screen coords into domain coords
+    convert: (pxlPos: number, pxlSize: number) => min + (max - min) * pxlPos / pxlSize,
+    // Normalize a given distance relatively to the min/max domain
+    normalize: (dist: number) => dist / (max - min)
+  };
+};
+
+// findClosestDatapoint will search in all datapoints which is the closer to the given position in pixels
+//  This is done by converting screen coords into domain coords, then finding the least distance between this converted point and all the datapoints.
+export const findClosestDatapoint = (lines: VCLines, x: number, y: number, width: number, height: number): VCDataPoint | undefined => {
+  if (width <= 0 || height <= 0) {
+    return undefined;
+  }
+  const flat: VCDataPoint[] = lines.flatMap<VCDataPoint>(line => line.datapoints);
+  if (flat.length === 0) {
+    return undefined;
+  }
+  const xNumFunc: (dp: VCDataPoint) => number = typeof flat[0].x === 'object' ? dp => dp.x.getTime() : dp => dp.x;
+  const xConv = createDomainConverter(flat, xNumFunc);
+  const yConv = createDomainConverter(flat,  dp => dp.y);
+  const clickedX = xConv.convert(x, width);
+  const clickedY = yConv.convert(height - y /* reversed y coords */, height);
+
+  return flat.reduce((p: VCDataPoint, c: VCDataPoint) => {
+    if (p === null) {
+      return c;
+    }
+    const dist = xConv.normalize(Math.abs((clickedX - xNumFunc(c)))) + yConv.normalize(Math.abs(clickedY - c.y));
+    const prevDist = xConv.normalize(Math.abs((clickedX - xNumFunc(p)))) + yConv.normalize(Math.abs(clickedY - p.y));
+    return dist < prevDist ? c : p;
+  });
+};
