@@ -4,7 +4,7 @@ import { VictoryLegend, VictoryPortal, VictoryLabel } from 'victory';
 import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
-import { VCLines, VCDataPoint, VCLine } from '../types/VictoryChartInfo';
+import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { createContainer } from './Container';
 import { buildLegendInfo, findClosestDatapoint } from '../utils/victoryChartsUtils';
@@ -92,10 +92,16 @@ class ChartWithLegend extends React.Component<Props, State> {
         target: 'data',
         eventHandlers: {
           onClick: event => {
+            // We need to get coordinates relative to the SVG
+            const svg = event.target.viewportElement;
+            const pt = svg.createSVGPoint();
+            pt.x = event.clientX;
+            pt.y = event.clientY;
+            const clicked = pt.matrixTransform(svg.getScreenCTM().inverse());
             const closest = findClosestDatapoint(
               this.props.data,
-              event.clientX - padding.left,
-              event.clientY - padding.top,
+              clicked.x - padding.left,
+              clicked.y - padding.top,
               this.state.width - padding.left - padding.right,
               height - padding.top - padding.bottom);
             if (closest) {
