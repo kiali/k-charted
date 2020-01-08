@@ -122,6 +122,8 @@ class ChartWithLegend extends React.Component<Props, State> {
           events={events}
           containerComponent={createContainer()}
           scale={{x: 'time'}}
+          // Hack: 1 pxl on Y domain padding to prevent harsh clipping (https://github.com/kiali/kiali/issues/2069)
+          domainPadding={{y: 1}}
           {...this.props.moreChartProps}
         >
           {showOverlay && (
