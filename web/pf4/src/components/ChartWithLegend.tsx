@@ -10,16 +10,17 @@ import { createContainer } from './Container';
 import { buildLegendInfo, findClosestDatapoint } from '../utils/victoryChartsUtils';
 
 type Props = {
-  data: VCLines;
-  seriesComponent: React.ReactElement;
-  unit: string;
   chartHeight?: number;
-  groupOffset?: number;
+  data: VCLines;
   fill?: boolean;
-  stroke?: boolean;
+  groupOffset?: number;
   moreChartProps?: ChartProps;
-  overlay?: Overlay;
   onClick?: (datum: VCDataPoint) => void;
+  overlay?: Overlay;
+  seriesComponent: React.ReactElement;
+  stroke?: boolean;
+  timeWindow?: [Date, Date];
+  unit: string;
 };
 
 type State = {
@@ -146,6 +147,7 @@ class ChartWithLegend extends React.Component<Props, State> {
           <ChartAxis
             tickCount={scaleInfo.count}
             style={{ tickLabels: {fontSize: 12, padding: 2} }}
+            domain={this.props.timeWindow}
           />
           <ChartAxis
             tickLabelComponent={<VictoryPortal><VictoryLabel/></VictoryPortal>}
