@@ -15,6 +15,7 @@ type KChartProps = {
   expandHandler?: () => void;
   onClick?: (datum: VCDataPoint) => void;
   overlay?: Overlay;
+  timeWindow?: [Date, Date];
 };
 
 const expandBlockStyle: React.CSSProperties = {
@@ -103,6 +104,7 @@ class KChart extends React.Component<KChartProps, {}> {
           unit={this.props.chart.unit}
           moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
           onClick={this.props.onClick}
+          timeWindow={this.props.timeWindow}
         />
       </>
     );

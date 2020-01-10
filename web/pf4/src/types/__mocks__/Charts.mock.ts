@@ -8,6 +8,8 @@ const increment = 60;
 
 type MetricMock = { name: string, labels: { [key: string]: string } };
 
+export const biggerTimeWindow: [Date, Date] = [new Date((t0 - 10 * 60) * 1000), new Date((t0 + 10 * 60) * 1000)];
+
 const genSeries = (metrics: MetricMock[]): TimeSeries[] => {
   return metrics.map(m => {
     m.labels.__name__ = m.name;

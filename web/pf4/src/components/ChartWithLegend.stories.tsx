@@ -67,7 +67,15 @@ storiesOf('ChartWithLegend', module)
     return <ChartWithLegend data={[traces]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
   })
   .add('as scatter plots with dates', () => {
-    return <ChartWithLegend data={[tracesXAsDates]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
+    return (
+      <ChartWithLegend
+        data={[tracesXAsDates]}
+        unit="seconds"
+        seriesComponent={(<ChartScatter/>)}
+        onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)}
+        timeWindow={[new Date(now - 40000), new Date(now + 40000)]}
+      />
+    );
   })
   .add('with two series', () => {
     return <ChartWithLegend data={[tracesXAsDates, tracesXAsDatesBis]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
