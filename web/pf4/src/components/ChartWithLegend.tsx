@@ -28,6 +28,13 @@ type State = {
   hiddenSeries: Set<number>;
 };
 
+type VictoryEvent = {
+  target: string,
+  childName: string[],
+  eventKey: string,
+  eventHandlers: any // defined in victory as PropTypes.object; leaving any for flexibility
+};
+
 class ChartWithLegend extends React.Component<Props, State> {
   containerRef: React.RefObject<HTMLDivElement>;
 
@@ -69,11 +76,12 @@ class ChartWithLegend extends React.Component<Props, State> {
     const padding = { top: 10, bottom: 20, left: 40, right: 10 + overlayRightPadding };
     padding.bottom += legend.height;
 
-    const events = this.props.data.map((_, idx) => this.registerEvents(idx, 'serie-' + idx));
+    const events: VictoryEvent[] = [];
+    this.props.data.forEach((_, idx) => this.registerEvents(events, idx, 'serie-' + idx));
     let overlayFactor = 1.0;
-    let useSecondAxis = this.props.overlay !== undefined;
+    let useSecondAxis = showOverlay;
     if (this.props.overlay) {
-      events.push(this.registerEvents(overlayIdx, 'overlay'));
+      this.registerEvents(events, overlayIdx, 'overlay');
       // Normalization for y-axis display to match y-axis domain of the main data
       // (see https://formidable.com/open-source/victory/gallery/multiple-dependent-axes/)
       const mainMax = Math.max(...this.props.data.map(line => Math.max(...line.datapoints.map(d => d.y))));
@@ -189,62 +197,64 @@ class ChartWithLegend extends React.Component<Props, State> {
     );
   }
 
-  private registerEvents(idx: number, serieName: string) {
-    return {
-      childName: ['serie-legend'],
-      target: ['data', 'labels'],
-      eventKey: String(idx),
-      eventHandlers: {
-        onMouseOver: () => {
-          return [
-            {
-              childName: [serieName],
-              target: 'data',
-              eventKey: 'all',
-              mutation: props => {
-                return {
-                  style: {...props.style,  strokeWidth: 4, fillOpacity: 0.5}
-                };
-              }
-            }
-          ];
-        },
-        onMouseOut: () => {
-          return [
-            {
-              childName: [serieName],
-              target: 'data',
-              eventKey: 'all',
-              mutation: () => {
-                return null;
-              }
-            }
-          ];
-        },
-        onClick: () => {
-          return [
-            {
-              childName: [serieName],
-              target: 'data',
-              mutation: () => {
-                if (!this.state.hiddenSeries.delete(idx)) {
-                  // Was not already hidden => add to set
-                  this.state.hiddenSeries.add(idx);
+  private registerEvents(pool: VictoryEvent[], idx: number, serieName: string) {
+    ['data', 'labels'].forEach(target => {
+      pool.push({
+        childName: ['serie-legend'],
+        target: target,
+        eventKey: String(idx),
+        eventHandlers: {
+          onMouseOver: () => {
+            return [
+              {
+                childName: [serieName],
+                target: 'data',
+                eventKey: 'all',
+                mutation: props => {
+                  return {
+                    style: {...props.style,  strokeWidth: 4, fillOpacity: 0.5}
+                  };
                 }
-                this.setState({ hiddenSeries: new Set(this.state.hiddenSeries) });
-                return null;
               }
-            },
-            {
-              childName: [serieName],
-              target: 'data',
-              eventKey: 'all',
-              mutation: () => null
-            }
-          ];
+            ];
+          },
+          onMouseOut: () => {
+            return [
+              {
+                childName: [serieName],
+                target: 'data',
+                eventKey: 'all',
+                mutation: () => {
+                  return null;
+                }
+              }
+            ];
+          },
+          onClick: () => {
+            return [
+              {
+                childName: [serieName],
+                target: 'data',
+                mutation: () => {
+                  if (!this.state.hiddenSeries.delete(idx)) {
+                    // Was not already hidden => add to set
+                    this.state.hiddenSeries.add(idx);
+                  }
+                  this.setState({ hiddenSeries: new Set(this.state.hiddenSeries) });
+                  return null;
+                }
+              },
+              {
+                childName: [serieName],
+                target: 'data',
+                eventKey: 'all',
+                mutation: () => null
+              }
+            ];
+          }
         }
-      },
-    };
+      });
+    });
   }
 
   private scaledAxisInfo(data: VCLines) {
