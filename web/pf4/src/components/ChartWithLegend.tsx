@@ -71,7 +71,7 @@ class ChartWithLegend extends React.Component<Props, State> {
 
     const events = this.props.data.map((_, idx) => this.registerEvents(idx, 'serie-' + idx));
     let overlayFactor = 1.0;
-    let useSecondAxis = this.props.overlay !== undefined;
+    let useSecondAxis = showOverlay;
     if (this.props.overlay) {
       events.push(this.registerEvents(overlayIdx, 'overlay'));
       // Normalization for y-axis display to match y-axis domain of the main data
