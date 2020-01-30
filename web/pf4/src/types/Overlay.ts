@@ -1,6 +1,6 @@
 import { VCLine } from './VictoryChartInfo';
 
-export type OverlayInfo = {
+export type OverlayInfo = any & {
   title: string,
   unit: string,
   dataStyle: any, // see "data" in https://formidable.com/open-source/victory/docs/common-props/#style
