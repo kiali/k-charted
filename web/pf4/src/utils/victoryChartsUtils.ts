@@ -123,21 +123,17 @@ const createDomainConverter = (dps: VCDataPoint[], numFunc: (dp: VCDataPoint) =>
 
 // findClosestDatapoint will search in all datapoints which is the closer to the given position in pixels
 //  This is done by converting screen coords into domain coords, then finding the least distance between this converted point and all the datapoints.
-export const findClosestDatapoint = (lines: VCLines, x: number, y: number, width: number, height: number): VCDataPoint | undefined => {
-  if (width <= 0 || height <= 0) {
+export const findClosestDatapoint = (flatDP: VCDataPoint[], x: number, y: number, width: number, height: number): VCDataPoint | undefined => {
+  if (width <= 0 || height <= 0 || flatDP.length === 0) {
     return undefined;
   }
-  const flat: VCDataPoint[] = lines.flatMap<VCDataPoint>(line => line.datapoints);
-  if (flat.length === 0) {
-    return undefined;
-  }
-  const xNumFunc: (dp: VCDataPoint) => number = typeof flat[0].x === 'object' ? dp => dp.x.getTime() : dp => dp.x;
-  const xConv = createDomainConverter(flat, xNumFunc);
-  const yConv = createDomainConverter(flat,  dp => dp.y);
+  const xNumFunc: (dp: VCDataPoint) => number = typeof flatDP[0].x === 'object' ? dp => dp.x.getTime() : dp => dp.x;
+  const xConv = createDomainConverter(flatDP, xNumFunc);
+  const yConv = createDomainConverter(flatDP,  dp => dp.y);
   const clickedX = xConv.convert(x, width);
   const clickedY = yConv.convert(height - y /* reversed y coords */, height);
 
-  return flat.reduce((p: VCDataPoint, c: VCDataPoint) => {
+  return flatDP.reduce((p: VCDataPoint, c: VCDataPoint) => {
     if (p === null) {
       return c;
     }

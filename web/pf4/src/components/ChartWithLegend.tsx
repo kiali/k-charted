@@ -70,8 +70,9 @@ class ChartWithLegend extends React.Component<Props, State> {
     padding.bottom += legend.height;
 
     const events = this.props.data.map((_, idx) => this.registerEvents(idx, 'serie-' + idx));
-    let overlayFactor = 1.0;
     let useSecondAxis = showOverlay;
+    let normalizedOverlay: VCDataPoint[] = [];
+    let overlayFactor = 1.0;
     if (this.props.overlay) {
       events.push(this.registerEvents(overlayIdx, 'overlay'));
       // Normalization for y-axis display to match y-axis domain of the main data
@@ -86,6 +87,7 @@ class ChartWithLegend extends React.Component<Props, State> {
         useSecondAxis = false;
         overlayFactor = 1.0;
       }
+      normalizedOverlay = this.normalizeOverlay(overlayFactor);
     }
     const dataEvents: any[] = [];
     if (this.props.onClick) {
@@ -99,8 +101,12 @@ class ChartWithLegend extends React.Component<Props, State> {
             pt.x = event.clientX;
             pt.y = event.clientY;
             const clicked = pt.matrixTransform(svg.getScreenCTM().inverse());
+            let flatDP: VCDataPoint[] = this.props.data.flatMap<VCDataPoint>(line => line.datapoints);
+            if (showOverlay) {
+              flatDP = flatDP.concat(normalizedOverlay);
+            }
             const closest = findClosestDatapoint(
-              this.props.data,
+              flatDP,
               clicked.x - padding.left,
               clicked.y - padding.top,
               this.state.width - padding.left - padding.right,
@@ -128,7 +134,7 @@ class ChartWithLegend extends React.Component<Props, State> {
           {...this.props.moreChartProps}
         >
           {showOverlay && (
-            <ChartScatter key="overlay" name="overlay" data={this.normalizeOverlay(overlayFactor)} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
+            <ChartScatter key="overlay" name="overlay" data={normalizedOverlay} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
           )}
           <ChartGroup offset={groupOffset}>
             {this.props.data.map((serie, idx) => {
@@ -266,7 +272,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     };
   }
 
-  private normalizeOverlay(factor: number) {
+  private normalizeOverlay(factor: number): VCDataPoint[] {
     return this.props.overlay!.vcLine.datapoints.map(dp => ({ ...dp, y: dp.y * factor, actualY: dp.y }));
   }
 }
