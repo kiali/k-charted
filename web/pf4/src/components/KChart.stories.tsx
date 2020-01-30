@@ -55,7 +55,7 @@ storiesOf('PF4 KChart', module)
     };
     const dps = toVCDatapoints(generateRandomForOverlay(), info.title);
     return (
-      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} />
+      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert(p.actualY || p.y)} />
     );
   })
   .add('histogram', () => (
