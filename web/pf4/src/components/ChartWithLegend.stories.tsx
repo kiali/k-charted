@@ -1,10 +1,10 @@
 import React from 'react';
-import { ChartScatter } from '@patternfly/react-charts';
+import { ChartScatter, ChartLine } from '@patternfly/react-charts';
 import { storiesOf } from '@storybook/react';
 
 import '@patternfly/react-core/dist/styles/base.css';
 import ChartWithLegend from './ChartWithLegend';
-import { VCLine, makeLegend } from '../types/VictoryChartInfo';
+import { VCLine, makeLegend, VCLines } from '../types/VictoryChartInfo';
 
 const traces: VCLine = {
   datapoints: [{
@@ -62,6 +62,52 @@ const tracesXAsDatesBis = {
   legendItem: makeLegend('span duration', 'lightblue')
 };
 
+const crossing: VCLines = [{
+  datapoints: [{
+    x: 0,
+    y: 1,
+    name: 'mm 1',
+    unit: 'ms',
+    color: 'blue'
+  }, {
+    x: 1,
+    y: 3,
+    name: 'mm 1',
+    unit: 'ms',
+    color: 'blue'
+  }, {
+    x: 2,
+    y: 2,
+    name: 'mm 1',
+    unit: 'ms',
+    color: 'blue'
+  }],
+  color: 'blue',
+  legendItem: makeLegend('serie 1', 'blue')
+}, {
+  datapoints: [{
+    x: 0,
+    y: 2,
+    name: 'much longer serie name 2',
+    unit: '',
+    color: 'red'
+  }, {
+    x: 1,
+    y: 3,
+    name: 'much longer serie name 2',
+    unit: '',
+    color: 'red'
+  }, {
+    x: 2,
+    y: 1,
+    name: 'much longer serie name 2',
+    unit: '',
+    color: 'red'
+  }],
+  color: 'red',
+  legendItem: makeLegend('serie 2', 'red')
+}];
+
 storiesOf('ChartWithLegend', module)
   .add('as scatter plots', () => {
     return <ChartWithLegend data={[traces]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
@@ -79,4 +125,7 @@ storiesOf('ChartWithLegend', module)
   })
   .add('with two series', () => {
     return <ChartWithLegend data={[tracesXAsDates, tracesXAsDatesBis]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
+  })
+  .add('with crossing point', () => {
+    return <ChartWithLegend data={crossing} unit="seconds" stroke={true} seriesComponent={(<ChartLine/>)} />;
   });
