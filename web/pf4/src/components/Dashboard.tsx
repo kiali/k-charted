@@ -28,6 +28,9 @@ type Props = {
   labelValues: AllPromLabelsValues;
   labelPrettifier?: (key: string, value: string) => string;
   onClick?: (chart: ChartModel, datum: VCDataPoint) => void;
+  onBrushCleared?: (domain: any, props: any) => void;
+  onBrushDomainChange?: (domain: any, props: any) => void;
+  onBrushDomainChangeEnd?: (domain: any, props: any) => void;
   overlay?: Overlay;
   timeWindow?: [Date, Date];
 };
@@ -97,6 +100,9 @@ export class Dashboard extends React.Component<Props, State> {
         expandHandler={expandHandler}
         overlay={this.props.overlay}
         onClick={onClick}
+        onBrushCleared={this.props.onBrushCleared}
+        onBrushDomainChange={this.props.onBrushDomainChange}
+        onBrushDomainChangeEnd={this.props.onBrushDomainChangeEnd}
         timeWindow={this.props.timeWindow}
       />
     );

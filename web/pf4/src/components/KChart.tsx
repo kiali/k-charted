@@ -14,6 +14,9 @@ type KChartProps = {
   data: VCLines;
   expandHandler?: () => void;
   onClick?: (datum: VCDataPoint) => void;
+  onBrushCleared?: (domain: any, props: any) => void;
+  onBrushDomainChange?: (domain: any, props: any) => void;
+  onBrushDomainChangeEnd?: (domain: any, props: any) => void;
   overlay?: Overlay;
   timeWindow?: [Date, Date];
 };
@@ -104,6 +107,9 @@ class KChart extends React.Component<KChartProps, {}> {
           unit={this.props.chart.unit}
           moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
           onClick={this.props.onClick}
+          onBrushCleared={this.props.onBrushCleared}
+          onBrushDomainChange={this.props.onBrushDomainChange}
+          onBrushDomainChangeEnd={this.props.onBrushDomainChangeEnd}
           timeWindow={this.props.timeWindow}
         />
       </>

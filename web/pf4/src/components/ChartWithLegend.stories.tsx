@@ -68,20 +68,47 @@ const crossing: VCLines = [
   buildLine({ name: 'much longer serie name 2', unit: '', color: 'orange' }, [0, 1, 2], [2, 3, 1])
 ];
 
-storiesOf('ChartWithLegend', module)
-  .add('as scatter plots', () => {
-    return <ChartWithLegend data={[traces]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
-  })
-  .add('as scatter plots with dates', () => {
+class InChartNav extends React.Component<{}, { from: Date, to: Date, data: VCLine }> {
+  constructor(props: {}) {
+    super(props);
+    this.state = { from: new Date(now - 40000), to: new Date(now + 40000), data: tracesXAsDates };
+  }
+
+  render() {
     return (
       <ChartWithLegend
-        data={[tracesXAsDates]}
+        data={[this.state.data]}
         unit="seconds"
         seriesComponent={(<ChartScatter/>)}
         onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)}
-        timeWindow={[new Date(now - 40000), new Date(now + 40000)]}
+        onBrushDomainChangeEnd={domain => {
+          if (domain && domain.x && domain.x[0]) {
+            const data = {
+              ...this.state.data,
+              datapoints: this.state.data.datapoints.filter(d => d.x >= domain.x[0] && d.x <= domain.x[1])
+            };
+            this.setState({ from: domain.x[0], to: domain.x[1], data: data });
+          }
+        }}
+        timeWindow={[this.state.from, this.state.to]}
       />
     );
+  }
+}
+
+storiesOf('ChartWithLegend', module)
+  .add('as scatter plots', () => {
+    return (
+      <ChartWithLegend
+        data={[traces]}
+        unit="seconds"
+        seriesComponent={(<ChartScatter/>)}
+        onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)}
+      />
+    );
+  })
+  .add('as scatter with dates and in-chart navigation', () => {
+    return <InChartNav/>;
   })
   .add('with two series', () => {
     return <ChartWithLegend data={[tracesXAsDates, tracesXAsDatesBis]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
