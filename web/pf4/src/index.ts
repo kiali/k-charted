@@ -1,6 +1,6 @@
 import { Dashboard } from './components/Dashboard';
 import ChartWithLegend from './components/ChartWithLegend';
-import { CustomTooltip, CustomFlyout, CustomLabel } from './components/CustomTooltip';
+import { CustomTooltip, CustomLabel } from './components/CustomTooltip';
 import { DashboardModel, ChartModel, AggregationModel, ExternalLink } from '../../common/types/Dashboards';
 import { LabelDisplayName, AllPromLabelsValues, PromLabel, SingleLabelValues } from '../../common/types/Labels';
 import { TimeSeries } from '../../common/types/Metrics';
@@ -38,6 +38,5 @@ export {
   VCLine,
   VCDataPoint,
   CustomTooltip,
-  CustomFlyout,
   CustomLabel
 };

@@ -8,6 +8,7 @@ import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { createContainer } from './Container';
 import { buildLegendInfo, findClosestDatapoint } from '../utils/victoryChartsUtils';
+import { VCEvent, addLegendEvent } from '../utils/events';
 
 type Props = {
   chartHeight?: number;
@@ -69,12 +70,13 @@ class ChartWithLegend extends React.Component<Props, State> {
     const padding = { top: 10, bottom: 20, left: 40, right: 10 + overlayRightPadding };
     padding.bottom += legend.height;
 
-    const events = this.props.data.map((_, idx) => this.registerEvents(idx, 'serie-' + idx));
+    const events: VCEvent[] = [];
+    this.props.data.forEach((_, idx) => this.registerEvents(events, idx, 'serie-' + idx));
     let useSecondAxis = showOverlay;
     let normalizedOverlay: VCDataPoint[] = [];
     let overlayFactor = 1.0;
     if (this.props.overlay) {
-      events.push(this.registerEvents(overlayIdx, 'overlay'));
+      this.registerEvents(events, overlayIdx, 'overlay');
       // Normalization for y-axis display to match y-axis domain of the main data
       // (see https://formidable.com/open-source/victory/gallery/multiple-dependent-axes/)
       const mainMax = Math.max(...this.props.data.map(line => Math.max(...line.datapoints.map(d => d.y))));
@@ -195,62 +197,25 @@ class ChartWithLegend extends React.Component<Props, State> {
     );
   }
 
-  private registerEvents(idx: number, serieName: string) {
-    return {
-      childName: ['serie-legend'],
-      target: ['data', 'labels'],
-      eventKey: String(idx),
-      eventHandlers: {
-        onMouseOver: () => {
-          return [
-            {
-              childName: [serieName],
-              target: 'data',
-              eventKey: 'all',
-              mutation: props => {
-                return {
-                  style: {...props.style,  strokeWidth: 4, fillOpacity: 0.5}
-                };
-              }
-            }
-          ];
-        },
-        onMouseOut: () => {
-          return [
-            {
-              childName: [serieName],
-              target: 'data',
-              eventKey: 'all',
-              mutation: () => {
-                return null;
-              }
-            }
-          ];
-        },
-        onClick: () => {
-          return [
-            {
-              childName: [serieName],
-              target: 'data',
-              mutation: () => {
-                if (!this.state.hiddenSeries.delete(idx)) {
-                  // Was not already hidden => add to set
-                  this.state.hiddenSeries.add(idx);
-                }
-                this.setState({ hiddenSeries: new Set(this.state.hiddenSeries) });
-                return null;
-              }
-            },
-            {
-              childName: [serieName],
-              target: 'data',
-              eventKey: 'all',
-              mutation: () => null
-            }
-          ];
-        }
+  private registerEvents(events: VCEvent[], idx: number, serieName: string) {
+    addLegendEvent(events, {
+      legendName: 'serie-legend',
+      idx: idx,
+      serieName: serieName,
+      onMouseOver: props => {
+        return {
+          style: {...props.style,  strokeWidth: 4, fillOpacity: 0.5}
+        };
       },
-    };
+      onClick: () => {
+        if (!this.state.hiddenSeries.delete(idx)) {
+          // Was not already hidden => add to set
+          this.state.hiddenSeries.add(idx);
+        }
+        this.setState({ hiddenSeries: new Set(this.state.hiddenSeries) });
+        return null;
+      }
+    });
   }
 
   private scaledAxisInfo(data: VCLines) {

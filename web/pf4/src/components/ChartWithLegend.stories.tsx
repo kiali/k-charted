@@ -5,6 +5,7 @@ import { storiesOf } from '@storybook/react';
 import '@patternfly/react-core/dist/styles/base.css';
 import ChartWithLegend from './ChartWithLegend';
 import { VCLine, makeLegend, VCLines } from '../types/VictoryChartInfo';
+import { buildLine } from '../types/__mocks__/Charts.mock';
 
 const traces: VCLine = {
   datapoints: [{
@@ -62,51 +63,10 @@ const tracesXAsDatesBis = {
   legendItem: makeLegend('span duration', 'lightblue')
 };
 
-const crossing: VCLines = [{
-  datapoints: [{
-    x: 0,
-    y: 1,
-    name: 'mm 1',
-    unit: 'ms',
-    color: 'blue'
-  }, {
-    x: 1,
-    y: 3,
-    name: 'mm 1',
-    unit: 'ms',
-    color: 'blue'
-  }, {
-    x: 2,
-    y: 2,
-    name: 'mm 1',
-    unit: 'ms',
-    color: 'blue'
-  }],
-  color: 'blue',
-  legendItem: makeLegend('serie 1', 'blue')
-}, {
-  datapoints: [{
-    x: 0,
-    y: 2,
-    name: 'much longer serie name 2',
-    unit: '',
-    color: 'red'
-  }, {
-    x: 1,
-    y: 3,
-    name: 'much longer serie name 2',
-    unit: '',
-    color: 'red'
-  }, {
-    x: 2,
-    y: 1,
-    name: 'much longer serie name 2',
-    unit: '',
-    color: 'red'
-  }],
-  color: 'red',
-  legendItem: makeLegend('serie 2', 'red')
-}];
+const crossing: VCLines = [
+  buildLine({ name: 'mm 1', unit: 'ms', color: 'cyan' }, [0, 1, 2], [1, 3, 2]),
+  buildLine({ name: 'much longer serie name 2', unit: '', color: 'orange' }, [0, 1, 2], [2, 3, 1])
+];
 
 storiesOf('ChartWithLegend', module)
   .add('as scatter plots', () => {
