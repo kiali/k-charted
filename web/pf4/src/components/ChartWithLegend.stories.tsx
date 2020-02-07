@@ -7,40 +7,12 @@ import ChartWithLegend from './ChartWithLegend';
 import { VCLine, makeLegend, VCLines } from '../types/VictoryChartInfo';
 import { buildLine } from '../types/__mocks__/Charts.mock';
 
-const traces: VCLine = {
-  datapoints: [{
-    x: 0,
-    y: 0.62,
-    name: 'Trace 1',
-    unit: 'seconds',
-    size: 8
-  }, {
-    x: 4,
-    y: 0.80,
-    name: 'Trace 2',
-    unit: 'seconds',
-    size: 4
-  }, {
-    x: 5,
-    y: 0.83,
-    name: 'Trace 3',
-    unit: 'seconds',
-    size: 4
-  }, {
-    x: 8,
-    y: 0.45,
-    name: 'Trace 4',
-    unit: 'seconds',
-    size: 5
-  }, {
-    x: 16,
-    y: 0.152,
-    name: 'Trace 5',
-    unit: 'seconds',
-    size: 10
-  }],
-  legendItem: makeLegend('span duration', 'blue')
-};
+const traces: VCLine = buildLine(
+  { name: 'span duration', unit: 'seconds', color: 'blue' },
+  [0, 4, 5, 8, 16],
+  [0.62, 0.80, 0.83, 0.45, 0.152],
+  [{ name: 'Trace 1', size: 8 }, { name: 'Trace 2', size: 4 }, { name: 'Trace 3', size: 4 }, { name: 'Trace 4', size: 5 }, { name: 'Trace 5', size: 10 }]
+);
 
 const now = new Date().getTime();
 const tracesXAsDates = {
@@ -57,7 +29,8 @@ const tracesXAsDatesBis = {
   datapoints: tracesXAsDates.datapoints.map(t => {
     return {
       ...t,
-      y: t.y * 2
+      y: t.y * 2,
+      color: 'lightblue'
     };
   }),
   legendItem: makeLegend('span duration', 'lightblue')
@@ -81,13 +54,16 @@ class InChartNav extends React.Component<{}, { from: Date, to: Date, data: VCLin
         unit="seconds"
         seriesComponent={(<ChartScatter/>)}
         onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)}
-        onBrushDomainChangeEnd={domain => {
-          if (domain && domain.x && domain.x[0]) {
-            const data = {
-              ...this.state.data,
-              datapoints: this.state.data.datapoints.filter(d => d.x >= domain.x[0] && d.x <= domain.x[1])
-            };
-            this.setState({ from: domain.x[0], to: domain.x[1], data: data });
+        brushHandlers={{
+          onDomainChangeEnd: (_, props) => {
+            const domain = props.currentDomain;
+            if (domain && domain.x && domain.x[0]) {
+              const data = {
+                ...this.state.data,
+                datapoints: this.state.data.datapoints.filter(d => d.x >= domain.x[0] && d.x <= domain.x[1])
+              };
+              this.setState({ from: domain.x[0] as Date, to: domain.x[1] as Date, data: data });
+            }
           }
         }}
         timeWindow={[this.state.from, this.state.to]}

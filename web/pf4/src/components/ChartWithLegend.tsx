@@ -6,7 +6,7 @@ import { format as d3Format } from 'd3-format';
 import { getFormatter } from '../../../common/utils/formatter';
 import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
-import { createContainer2 } from './Container';
+import { newBrushVoronoiContainer, BrushHandlers } from './Container';
 import { buildLegendInfo, findClosestDatapoint } from '../utils/victoryChartsUtils';
 import { VCEvent, addLegendEvent } from '../utils/events';
 
@@ -17,9 +17,7 @@ type Props = {
   groupOffset?: number;
   moreChartProps?: ChartProps;
   onClick?: (datum: VCDataPoint) => void;
-  onBrushCleared?: (domain: any, props: any) => void;
-  onBrushDomainChange?: (domain: any, props: any) => void;
-  onBrushDomainChangeEnd?: (domain: any, props: any) => void;
+  brushHandlers?: BrushHandlers;
   overlay?: Overlay;
   seriesComponent: React.ReactElement;
   stroke?: boolean;
@@ -132,7 +130,7 @@ class ChartWithLegend extends React.Component<Props, State> {
           width={this.state.width}
           padding={padding}
           events={events}
-          containerComponent={createContainer2(this.props.onBrushCleared, this.props.onBrushDomainChange, this.props.onBrushDomainChangeEnd)}
+          containerComponent={newBrushVoronoiContainer(this.props.brushHandlers)}
           scale={{x: 'time'}}
           // Hack: 1 pxl on Y domain padding to prevent harsh clipping (https://github.com/kiali/kiali/issues/2069)
           domainPadding={{y: 1}}

@@ -201,7 +201,7 @@ export const buildLine = (info: { name: string, unit: string, color: string }, x
         x: xs[i],
         y: v,
         ...info,
-        ...(more && more[i])
+        ...more?.[i]
       };
     }),
     legendItem: makeLegend(info.name, info.color),
