@@ -1,7 +1,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import KChart from './KChart';
-import { getDataSupplier, toOverlay, toVCLine, toVCDatapoints } from '../utils/victoryChartsUtils';
+import { getDataSupplier, toOverlay, toVCDatapoints } from '../utils/victoryChartsUtils';
 import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, generateRandomForOverlay, emptyLabels } from '../types/__mocks__/Charts.mock';
 
 import '@patternfly/react-core/dist/styles/base.css';

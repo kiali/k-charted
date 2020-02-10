@@ -8,12 +8,14 @@ import { ChartModel } from '../../../common/types/Dashboards';
 import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import ChartWithLegend from './ChartWithLegend';
+import { BrushHandlers } from './Container';
 
 type KChartProps = {
   chart: ChartModel;
   data: VCLines;
   expandHandler?: () => void;
   onClick?: (datum: VCDataPoint) => void;
+  brushHandlers?: BrushHandlers;
   overlay?: Overlay;
   timeWindow?: [Date, Date];
 };
@@ -104,6 +106,7 @@ class KChart extends React.Component<KChartProps, {}> {
           unit={this.props.chart.unit}
           moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
           onClick={this.props.onClick}
+          brushHandlers={this.props.brushHandlers}
           timeWindow={this.props.timeWindow}
         />
       </>
