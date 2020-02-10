@@ -1,10 +1,11 @@
 import React from 'react';
-import { ChartScatter } from '@patternfly/react-charts';
+import { ChartScatter, ChartLine } from '@patternfly/react-charts';
 import { storiesOf } from '@storybook/react';
 
 import '@patternfly/react-core/dist/styles/base.css';
 import ChartWithLegend from './ChartWithLegend';
-import { VCLine, makeLegend } from '../types/VictoryChartInfo';
+import { VCLine, makeLegend, VCLines } from '../types/VictoryChartInfo';
+import { buildLine } from '../types/__mocks__/Charts.mock';
 
 const traces: VCLine = {
   datapoints: [{
@@ -62,6 +63,11 @@ const tracesXAsDatesBis = {
   legendItem: makeLegend('span duration', 'lightblue')
 };
 
+const crossing: VCLines = [
+  buildLine({ name: 'mm 1', unit: 'ms', color: 'cyan' }, [0, 1, 2], [1, 3, 2]),
+  buildLine({ name: 'much longer serie name 2', unit: '', color: 'orange' }, [0, 1, 2], [2, 3, 1])
+];
+
 storiesOf('ChartWithLegend', module)
   .add('as scatter plots', () => {
     return <ChartWithLegend data={[traces]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
@@ -79,4 +85,7 @@ storiesOf('ChartWithLegend', module)
   })
   .add('with two series', () => {
     return <ChartWithLegend data={[tracesXAsDates, tracesXAsDatesBis]} unit="seconds" seriesComponent={(<ChartScatter/>)} onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)} />;
+  })
+  .add('with crossing point', () => {
+    return <ChartWithLegend data={crossing} unit="seconds" stroke={true} seriesComponent={(<ChartLine/>)} />;
   });
