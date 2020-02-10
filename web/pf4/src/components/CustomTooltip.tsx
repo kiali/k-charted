@@ -9,11 +9,12 @@ const canvasContext: any = document.createElement('canvas').getContext('2d');
 canvasContext.font = '14px overpass';
 
 export const CustomLabel = (props: any & { textWidth: number }) => {
+  const nbTexts = Array.isArray(props.text) ? props.text.length : 1;
   const x = props.x - 16 - props.textWidth / 2;
-  const startY = 3 + props.y - (props.text.length * dy) / 2;
+  const startY = 3 + props.y - (nbTexts * dy) / 2;
   return (
     <>
-      {props.activePoints.filter(pt => pt.color)
+      {props.activePoints && props.activePoints.filter(pt => pt.color)
         .map((pt, idx) => {
           return <rect key={'rect-' + idx} width={squareSize} height={squareSize} x={x} y={startY + dy * idx} style={{ fill: pt.color }} />;
         })
@@ -24,7 +25,8 @@ export const CustomLabel = (props: any & { textWidth: number }) => {
 };
 
 export const CustomTooltip = (props: any) => {
-  const textWidth = Math.max(...props.text.map(t => canvasContext.measureText(t).width));
+  const texts: Array<string> = Array.isArray(props.text) ? props.text : [props.text];
+  const textWidth = Math.max(...texts.map(t => canvasContext.measureText(t).width));
   return (
     <ChartTooltip
       {...props}

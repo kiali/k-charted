@@ -1,10 +1,9 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import { generateRandomHistogramChart, emptyLabels, genDates, buildLine } from '../types/__mocks__/Charts.mock';
+import { genDates, buildLine } from '../types/__mocks__/Charts.mock';
 import { SparklineChart } from './SparklineChart';
-import { getDataSupplier } from '../utils/victoryChartsUtils';
-import { VCLine, makeLegend, VCLines } from '../types/VictoryChartInfo';
+import { VCLines } from '../types/VictoryChartInfo';
 
 import '@patternfly/react-core/dist/styles/base.css';
 

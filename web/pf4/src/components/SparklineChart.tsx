@@ -72,12 +72,12 @@ export class SparklineChart extends React.Component<Props, State> {
     if (this.props.showLegend) {
       padding.bottom += legendHeight;
       height += legendHeight;
-      this.props.series.forEach((s, idx) => {
+      this.props.series.forEach((_, idx) => {
         addLegendEvent(events, {
           legendName: this.props.name + '-legend',
           idx: idx,
           serieName: this.props.name + '-area-' + idx,
-          onClick: _ => {
+          onClick: __ => {
             if (!this.state.hiddenSeries.delete(idx)) {
               // Was not already hidden => add to set
               this.state.hiddenSeries.add(idx);
