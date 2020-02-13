@@ -17,7 +17,7 @@ export const toVCDatapoints = (dps: Datapoint[], name: string): VCDataPoint[] =>
 
 export const toVCLine = (dps: VCDataPoint[], dpInject: { unit: string, color: string } & any): VCLine => {
   const datapoints = dps.map(dp => ({ ...dpInject, ...dp }));
-  const legendItem: LegendItem = makeLegend(dpInject.name, dpInject.color, dpInject.symbo);
+  const legendItem: LegendItem = makeLegend(dpInject.name, dpInject.color, dpInject.symbol);
   return {
     datapoints: datapoints,
     legendItem: legendItem,

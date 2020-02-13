@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { ChartTooltip } from '@patternfly/react-charts';
-import { Flyout, VictoryLabel } from 'victory';
+import { Flyout, Point, VictoryLabel } from 'victory';
 
-const squareSize = 10;
 const dy = 15;
 const canvasContext: any = document.createElement('canvas').getContext('2d');
 // TODO: safe way to get this programmatically?
@@ -10,13 +9,23 @@ canvasContext.font = '14px overpass';
 
 export const CustomLabel = (props: any & { textWidth: number }) => {
   const nbTexts = Array.isArray(props.text) ? props.text.length : 1;
-  const x = props.x - 16 - props.textWidth / 2;
-  const startY = 3 + props.y - (nbTexts * dy) / 2;
+  const x = props.x - 11 - props.textWidth / 2;
+  const startY = 8 + props.y - (nbTexts * dy) / 2;
   return (
     <>
       {props.activePoints && props.activePoints.filter(pt => pt.color)
         .map((pt, idx) => {
-          return <rect key={'rect-' + idx} width={squareSize} height={squareSize} x={x} y={startY + dy * idx} style={{ fill: pt.color }} />;
+          const symbol = pt.symbol || 'square';
+          return (
+            <Point
+              key={'item-' + idx}
+              style={{ fill: pt.color, type: symbol }}
+              x={x}
+              y={startY + dy * idx}
+              symbol={symbol}
+              size={5.5}
+            />
+          );
         })
       })}
       <VictoryLabel {...props} />
