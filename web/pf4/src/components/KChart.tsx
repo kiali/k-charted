@@ -2,7 +2,7 @@ import * as React from 'react';
 import { style } from 'typestyle';
 import { Button, Text, TextContent, TextVariants } from '@patternfly/react-core';
 import { ChartArea, ChartBar, ChartScatter, ChartLine } from '@patternfly/react-charts';
-import { ExpandArrowsAltIcon, InfoAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
+import { ExpandArrowsAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
 import { ChartModel } from '../../../common/types/Dashboards';
 import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
@@ -27,23 +27,15 @@ const expandBlockStyle: React.CSSProperties = {
   textAlign: 'right'
 };
 
-const emptyMetricsStyle = style({
+const noMetricsStyle = style({
   width: '100%',
-  height: 345,
   textAlign: 'center',
   $nest: {
     '& > p': {
       font: '14px sans-serif',
-      margin: 0
-    },
-    '& div': {
-      width: '100%',
-      height: 'calc(100% - 5ex)',
-      backgroundColor: '#fafafa',
-      border: '1px solid #d1d1d1'
-    },
-    '& div p:first-child': {
-      marginTop: '8ex'
+      margin: 0,
+      padding: 32,
+      paddingTop: 20
     }
   }
 });
@@ -117,34 +109,33 @@ class KChart extends React.Component<KChartProps, {}> {
     return !data.some(s => s.datapoints.length !== 0);
   }
 
-  private renderEmpty() {
+  private renderNoMetric(jsx: JSX.Element) {
     return (
-      <div className={emptyMetricsStyle}>
-        <p>{this.props.chart.name}</p>
-        <div>
-          <p>
-            <InfoAltIcon />
-          </p>
-          <p>No data available</p>
-        </div>
+      <div className={noMetricsStyle}>
+        <TextContent>
+          <Text component={TextVariants.h4}>
+            {this.props.chart.name}
+          </Text>
+        </TextContent>
+        <TextContent style={{paddingTop: 20, paddingBottom: 30}}>
+          <Text component={TextVariants.h5}>{jsx}</Text>
+        </TextContent>
       </div>
     );
   }
 
+  private renderEmpty() {
+    return this.renderNoMetric(<>No data available</>);
+  }
+
   private renderError() {
-    return (
-      <div className={emptyMetricsStyle}>
-        <p>{this.props.chart.name}</p>
-        <div>
-          <p>
-            <ErrorCircleOIcon style={{color: '#cc0000'}} />
-          </p>
-          <p>An error occured while fetching this metric:</p>
-          <p><i>{this.props.chart.error}</i></p>
-          <p>Please make sure the dashboard definition is correct.</p>
-        </div>
-      </div>
-    );
+    return this.renderNoMetric((
+      <>
+        <ErrorCircleOIcon style={{color: '#cc0000', marginRight: 5}} />
+        An error occured while fetching this metric:
+        <p><i>{this.props.chart.error}</i></p>
+      </>
+    ));
   }
 }
 
