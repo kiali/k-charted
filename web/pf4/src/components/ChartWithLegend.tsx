@@ -94,30 +94,35 @@ class ChartWithLegend extends React.Component<Props, State> {
       normalizedOverlay = this.normalizeOverlay(overlayFactor);
     }
     const dataEvents: any[] = [];
+    let onClick: ((event: any) => void) | undefined = undefined;
     if (this.props.onClick) {
+      onClick = (event: any) => {
+        // We need to get coordinates relative to the SVG
+        const svg = event.target.viewportElement;
+        const pt = svg.createSVGPoint();
+        pt.x = event.clientX;
+        pt.y = event.clientY;
+        const clicked = pt.matrixTransform(svg.getScreenCTM().inverse());
+        let flatDP: VCDataPoint[] = this.props.data.flatMap<VCDataPoint>(line => line.datapoints);
+        if (showOverlay) {
+          flatDP = flatDP.concat(normalizedOverlay);
+        }
+        const closest = findClosestDatapoint(
+          flatDP,
+          clicked.x - padding.left,
+          clicked.y - padding.top,
+          this.state.width - padding.left - padding.right,
+          height - padding.top - padding.bottom);
+        if (closest) {
+          this.props.onClick!(closest);
+        }
+      };
+
       dataEvents.push({
         target: 'data',
         eventHandlers: {
           onClick: event => {
-            // We need to get coordinates relative to the SVG
-            const svg = event.target.viewportElement;
-            const pt = svg.createSVGPoint();
-            pt.x = event.clientX;
-            pt.y = event.clientY;
-            const clicked = pt.matrixTransform(svg.getScreenCTM().inverse());
-            let flatDP: VCDataPoint[] = this.props.data.flatMap<VCDataPoint>(line => line.datapoints);
-            if (showOverlay) {
-              flatDP = flatDP.concat(normalizedOverlay);
-            }
-            const closest = findClosestDatapoint(
-              flatDP,
-              clicked.x - padding.left,
-              clicked.y - padding.top,
-              this.state.width - padding.left - padding.right,
-              height - padding.top - padding.bottom);
-            if (closest) {
-              this.props.onClick!(closest);
-            }
+            onClick!(event);
             return [];
           }
         }
@@ -131,7 +136,7 @@ class ChartWithLegend extends React.Component<Props, State> {
           width={this.state.width}
           padding={padding}
           events={events}
-          containerComponent={newBrushVoronoiContainer(this.props.brushHandlers)}
+          containerComponent={newBrushVoronoiContainer(onClick, this.props.brushHandlers)}
           scale={{x: 'time'}}
           // Hack: 1 pxl on Y domain padding to prevent harsh clipping (https://github.com/kiali/kiali/issues/2069)
           domainPadding={{y: 1}}

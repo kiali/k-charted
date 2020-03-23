@@ -13,10 +13,10 @@ export type BrushHandlers = {
   onDomainChangeEnd?: (domain: BrushDomain, props: any) => void
 };
 
-export const newBrushVoronoiContainer = (handlers?: BrushHandlers) => {
+export const newBrushVoronoiContainer = (onClick?: (event: any) => void, handlers?: BrushHandlers) => {
   const voronoiProps = {
     labels: obj => `${obj.datum.name}: ${getFormatter(d3Format, obj.datum.unit)(obj.datum.actualY || obj.datum.y)}`,
-    labelComponent: <CustomTooltip/>,
+    labelComponent: <CustomTooltip onClick={onClick} />,
     // We blacklist "parent" as a workaround to avoid the VictoryVoronoiContainer crashing.
     // See https://github.com/FormidableLabs/victory/issues/1355
     voronoiBlacklist: ['parent']
