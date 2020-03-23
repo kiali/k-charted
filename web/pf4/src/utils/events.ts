@@ -1,7 +1,7 @@
 interface EventItem {
   legendName: string;
   idx: number;
-  serieName: string;
+  serieID: string;
   onClick?: (props: any) => any;
   onMouseOver?: (props: any) => any;
 }
@@ -31,12 +31,12 @@ export const addLegendEvent = (events: VCEvent[], item: EventItem): void => {
     eventHandlers.onClick = () => {
       return [
         {
-          childName: [item.serieName],
+          childName: [item.serieID],
           target: 'data',
           mutation: props => item.onClick!(props)
         },
         {
-          childName: [item.serieName],
+          childName: [item.serieID],
           target: 'data',
           eventKey: 'all',
           mutation: __ => null
@@ -48,7 +48,7 @@ export const addLegendEvent = (events: VCEvent[], item: EventItem): void => {
     eventHandlers.onMouseOver = () => {
       return [
         {
-          childName: [item.serieName],
+          childName: [item.serieID],
           target: 'data',
           eventKey: 'all',
           mutation: props => item.onMouseOver!(props)
@@ -58,7 +58,7 @@ export const addLegendEvent = (events: VCEvent[], item: EventItem): void => {
     eventHandlers.onMouseOut = () => {
       return [
         {
-          childName: [item.serieName],
+          childName: [item.serieID],
           target: 'data',
           eventKey: 'all',
           mutation: __ => null

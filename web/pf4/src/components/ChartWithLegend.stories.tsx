@@ -33,7 +33,7 @@ const tracesXAsDatesBis = {
       color: 'lightblue'
     };
   }),
-  legendItem: makeLegend('span duration', 'lightblue')
+  legendItem: makeLegend('span duration 2', 'lightblue')
 };
 
 const crossing: VCLines = [
