@@ -42,6 +42,7 @@ export const CustomTooltip = (props: any) => {
       flyoutWidth={textWidth + 50}
       flyoutComponent={<Flyout style={{ stroke: 'none', fillOpacity: 0.6 }} />}
       labelComponent={<CustomLabel textWidth={textWidth}/>} constrainToVisibleArea={true}
+      events={props.onClick ? { onClick: props.onClick } : undefined}
     />
   );
 };
