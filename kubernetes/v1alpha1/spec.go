@@ -88,8 +88,9 @@ type MonitoringDashboardExternalLinkVariables struct {
 	Workload  string `json:"workload,omitempty"`
 }
 
+// GetMetrics provides consistent MonitoringDashboardMetric slice in a backward-compatible way, if deprecated field MetricName is used instead of Metrics in Spec.
 func (in *MonitoringDashboardChart) GetMetrics() []MonitoringDashboardMetric {
-	if in.MetricName != "" {
+	if len(in.Metrics) == 0 {
 		return []MonitoringDashboardMetric{
 			MonitoringDashboardMetric{
 				MetricName:  in.MetricName,

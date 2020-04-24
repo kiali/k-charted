@@ -35,7 +35,9 @@ type Chart struct {
 	Error     string          `json:"error"`
 }
 
-func Labels(name, stat string) map[string]string {
+// BuildLabelsMap initiates a labels map out of a given metric name and optionally histogram stat
+// Exported for external usage (Kiali)
+func BuildLabelsMap(name, stat string) map[string]string {
 	labels := map[string]string{
 		nameLabel: name,
 	}
@@ -46,7 +48,7 @@ func Labels(name, stat string) map[string]string {
 }
 
 func (chart *Chart) FillHistogram(ref v1alpha1.MonitoringDashboardMetric, from prometheus.Histogram, scale float64) {
-	// Extract and sort keys for consistent oredering
+	// Extract and sort keys for consistent ordering
 	stats := []string{}
 	for k := range from {
 		stats = append(stats, k)
@@ -58,7 +60,7 @@ func (chart *Chart) FillHistogram(ref v1alpha1.MonitoringDashboardMetric, from p
 			chart.Error = fmt.Sprintf("error in metric %s/%s: %v", ref.MetricName, stat, promMetric.Err)
 			return
 		}
-		metric := ConvertMatrix(promMetric.Matrix, Labels(ref.DisplayName, stat), scale)
+		metric := ConvertMatrix(promMetric.Matrix, BuildLabelsMap(ref.DisplayName, stat), scale)
 		chart.Metrics = append(chart.Metrics, metric...)
 	}
 }
@@ -68,7 +70,7 @@ func (chart *Chart) FillMetric(ref v1alpha1.MonitoringDashboardMetric, from prom
 		chart.Error = fmt.Sprintf("error in metric %s: %v", ref.MetricName, from.Err)
 		return
 	}
-	metric := ConvertMatrix(from.Matrix, Labels(ref.DisplayName, ""), scale)
+	metric := ConvertMatrix(from.Matrix, BuildLabelsMap(ref.DisplayName, ""), scale)
 	chart.Metrics = append(chart.Metrics, metric...)
 }
 

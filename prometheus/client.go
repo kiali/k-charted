@@ -141,6 +141,8 @@ func roundSignificant(innerQuery string, precision float64) string {
 }
 
 // evictNaN will evict NaN datapoints (which aren't summable) from the series, with a little trick got from https://stackoverflow.com/a/58384750/3697695
+// Such undesirable NaN values can be observed, for instance, on aggregated metrics out of recording rules in Prometheus config.
+// Without evicting, they would "spread" on datapoints when summed.
 func evictNaN(query string) string {
 	return fmt.Sprintf("%s == %s", query, query)
 }
