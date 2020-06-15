@@ -49,7 +49,7 @@ func NewClient(cfg extconfig.PrometheusConfig) (*Client, error) {
 
 // FetchRange fetches a simple metric (gauge or counter) in given range
 func (in *Client) FetchRange(metricName, labels, grouping, aggregator string, q *MetricsQuery) Metric {
-	query := fmt.Sprintf("%s(%s)", aggregator, evictNaN(metricName+labels))
+	query := fmt.Sprintf("%s(%s)", aggregator, metricName+labels)
 	if grouping != "" {
 		query += fmt.Sprintf(" by (%s)", grouping)
 	}
@@ -61,7 +61,7 @@ func (in *Client) FetchRange(metricName, labels, grouping, aggregator string, q 
 func (in *Client) FetchRateRange(metricName, labels, grouping string, q *MetricsQuery) Metric {
 	var query string
 	// Example: round(sum(rate(my_counter{foo=bar}[5m])) by (baz), 0.001)
-	innerQuery := evictNaN(fmt.Sprintf("%s%s[%s]", metricName, labels, q.RateInterval))
+	innerQuery := fmt.Sprintf("%s%s[%s]", metricName, labels, q.RateInterval)
 	if grouping == "" {
 		query = fmt.Sprintf("sum(%s(%s))", q.RateFunc, innerQuery)
 	} else {
@@ -138,11 +138,4 @@ func (in *Client) GetMetricsForLabels(labels []string) ([]string, error) {
 // roundSignificant will output promQL that performs rounding only if the resulting value is significant, that is, higher than the requested precision
 func roundSignificant(innerQuery string, precision float64) string {
 	return fmt.Sprintf("round(%s, %f) > %f or %s", innerQuery, precision, precision, innerQuery)
-}
-
-// evictNaN will evict NaN datapoints (which aren't summable) from the series, with a little trick got from https://stackoverflow.com/a/58384750/3697695
-// Such undesirable NaN values can be observed, for instance, on aggregated metrics out of recording rules in Prometheus config.
-// Without evicting, they would "spread" on datapoints when summed.
-func evictNaN(query string) string {
-	return fmt.Sprintf("%s == %s", query, query)
 }
