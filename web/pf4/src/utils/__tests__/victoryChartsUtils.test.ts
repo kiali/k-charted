@@ -41,7 +41,8 @@ describe('Victory Charts Utils', () => {
       metrics: [{
         values: [[1, 1], [2, 2], [3, NaN], [4, 4]],
         labelSet: {}
-      }]
+      }],
+      startCollapsed: false
     };
 
     const res = getDataSupplier(withNaN, emptyLabels, colors)!();

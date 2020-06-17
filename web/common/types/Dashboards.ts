@@ -20,6 +20,7 @@ export interface ChartModel {
   max?: number;
   metrics: TimeSeries[];
   error?: string;
+  startCollapsed: boolean;
 }
 
 export interface AggregationModel {
