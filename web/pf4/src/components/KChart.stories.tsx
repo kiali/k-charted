@@ -55,7 +55,34 @@ storiesOf('PF4 KChart', module)
     };
     const dps = toVCDatapoints(generateRandomForOverlay(), info.title);
     return (
-      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert(p.actualY || p.y)} />
+      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert(p.y / (p.scaleFactor || 1))} />
+    );
+  })
+  .add('with bucketed overlay', () => {
+    reset();
+    const info: OverlayInfo = {
+      title: 'Span duration',
+      unit: 'seconds',
+      dataStyle: { fill: 'darkcyan' },
+      color: 'darkcyan',
+      symbol: 'circle',
+      size: 15,
+      buckets: 20
+    };
+    // Build many datapoints
+    const dps = toVCDatapoints(generateRandomForOverlay(), info.title)
+      .concat(toVCDatapoints(generateRandomForOverlay(), info.title))
+      .concat(toVCDatapoints(generateRandomForOverlay(), info.title))
+      .concat(toVCDatapoints(generateRandomForOverlay(), info.title))
+      .concat(toVCDatapoints(generateRandomForOverlay(), info.title))
+      .concat(toVCDatapoints(generateRandomForOverlay(), info.title))
+      .concat(toVCDatapoints(generateRandomForOverlay(), info.title))
+      .map(dp => {
+        // randomize X a little bit
+        return {...dp, x: new Date(dp.x.getTime() + 20000 * (Math.random() - 0.5))};
+      });
+    return (
+      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert(p.y / (p.scaleFactor || 1))} />
     );
   })
   .add('histogram', () => (
@@ -66,4 +93,9 @@ storiesOf('PF4 KChart', module)
   ))
   .add('with error', () => (
     <KChart chart={error} data={getDataSupplier(empty, emptyLabels, colors)!()} />
-  ));
+  ))
+  .add('start collapsed', () => {
+    reset();
+    const chart = { ...metric, startCollapsed: true };
+    return <KChart chart={chart} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
+  });

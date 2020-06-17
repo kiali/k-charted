@@ -4,6 +4,7 @@ import { getFormatter } from '../../../common/utils/formatter';
 import { CustomTooltip } from './CustomTooltip';
 
 import { VictoryVoronoiContainer, createContainer } from 'victory';
+import { VCDataPoint } from '..';
 
 type BrushDomain = { x: [number | Date, number | Date], y: [number, number] };
 
@@ -13,9 +14,22 @@ export type BrushHandlers = {
   onDomainChangeEnd?: (domain: BrushDomain, props: any) => void
 };
 
+const formatValue = (label: string, datum: VCDataPoint, value: number) => {
+  return label + ': ' + getFormatter(d3Format, datum.unit)(value / (datum.scaleFactor || 1));
+};
+
 export const newBrushVoronoiContainer = (onClick?: (event: any) => void, handlers?: BrushHandlers) => {
   const voronoiProps = {
-    labels: obj => `${obj.datum.name}: ${getFormatter(d3Format, obj.datum.unit)(obj.datum.actualY || obj.datum.y)}`,
+    labels: obj => {
+      if (obj.datum._median) {
+        // Buckets display => datapoint is expected to have _median, _min, _max, _q1, _q3 stats
+        const avg = obj.datum.y.reduce((s, y) => s + y, 0) / obj.datum.y.length;
+        return `${obj.datum.name} (${obj.datum.y.length} datapoints)
+          ${formatValue('avg', obj.datum, avg)}, ${formatValue('min', obj.datum, obj.datum._min)}, ${formatValue('max', obj.datum, obj.datum._max)}
+          ${formatValue('p25', obj.datum, obj.datum._q1)}, ${formatValue('p50', obj.datum, obj.datum._median)}, ${formatValue('p75', obj.datum, obj.datum._q3)}`;
+      }
+      return formatValue(obj.datum.name, obj.datum, obj.datum.y);
+    },
     labelComponent: <CustomTooltip onClick={onClick} />,
     // We blacklist "parent" as a workaround to avoid the VictoryVoronoiContainer crashing.
     // See https://github.com/FormidableLabs/victory/issues/1355

@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { Chart, ChartGroup, ChartAxis, ChartScatter, ChartProps } from '@patternfly/react-charts';
-import { VictoryLegend, VictoryPortal, VictoryLabel } from 'victory';
+import { VictoryLegend, VictoryPortal, VictoryLabel, VictoryBoxPlot } from 'victory';
 import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
 import { VCLines, VCDataPoint, LegendItem } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { newBrushVoronoiContainer, BrushHandlers } from './Container';
-import { buildLegendInfo, findClosestDatapoint } from '../utils/victoryChartsUtils';
+import { buildLegendInfo, findClosestDatapoint, toBuckets } from '../utils/victoryChartsUtils';
 import { VCEvent, addLegendEvent } from '../utils/events';
 
 type Props = {
@@ -92,6 +92,17 @@ class ChartWithLegend extends React.Component<Props, State> {
         overlayFactor = 1.0;
       }
       normalizedOverlay = this.normalizeOverlay(overlayFactor);
+      if (this.props.overlay.info.buckets) {
+        // Transform to bucketed stats
+        const model = {
+          name: this.props.overlay.info.title,
+          unit: this.props.overlay.info.unit,
+          color: this.props.overlay.info.color,
+          symbol: this.props.overlay.info.symbol,
+          scaleFactor: overlayFactor
+        };
+        normalizedOverlay = toBuckets(this.props.overlay.info.buckets, normalizedOverlay, model, this.props.timeWindow);
+      }
     }
     const dataEvents: any[] = [];
     let onClick: ((event: any) => void) | undefined = undefined;
@@ -143,7 +154,24 @@ class ChartWithLegend extends React.Component<Props, State> {
           {...this.props.moreChartProps}
         >
           {showOverlay && (
-            <ChartScatter key="overlay" name={overlayName} data={normalizedOverlay} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
+            this.props.overlay!.info.buckets ? (
+              <VictoryBoxPlot
+                key="overlay"
+                name={overlayName}
+                data={normalizedOverlay}
+                style={{
+                  data: this.props.overlay!.info.dataStyle,
+                  min: { stroke: this.props.overlay!.info.color, strokeWidth: 2 },
+                  max: { stroke: this.props.overlay!.info.color, strokeWidth: 2 },
+                  q1: { fill: this.props.overlay!.info.color },
+                  q3: { fill: this.props.overlay!.info.color },
+                  median: { stroke: 'white', strokeWidth: 2 }
+                }}
+                events={dataEvents}
+              />
+            ) : (
+              <ChartScatter key="overlay" name={overlayName} data={normalizedOverlay} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
+            )
           )}
           <ChartGroup offset={groupOffset}>
             {this.props.data.map((serie, idx) => {
@@ -257,7 +285,7 @@ class ChartWithLegend extends React.Component<Props, State> {
   }
 
   private normalizeOverlay(factor: number): VCDataPoint[] {
-    return this.props.overlay!.vcLine.datapoints.map(dp => ({ ...dp, y: dp.y * factor, actualY: dp.y }));
+    return this.props.overlay!.vcLine.datapoints.map(dp => ({ ...dp, y: dp.y * factor, scaleFactor: factor }));
   }
 }
 

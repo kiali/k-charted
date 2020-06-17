@@ -1,4 +1,4 @@
-import { TimeSeries, Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
+import { Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
 import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
@@ -62,6 +62,34 @@ export const buildLegendInfo = (items: LegendItem[], chartWidth: number): Legend
     height: 15 + 30 * nbRows,
     itemsPerRow: itemsPerRow
   };
+};
+
+export const toBuckets = (nbuckets: number, datapoints: VCDataPoint[], dpInject: any, timeWindow?: [Date, Date]): VCDataPoint[] => {
+  if (datapoints.length === 0) {
+    return [];
+  }
+  let min = 0;
+  let max = min;
+  if (timeWindow) {
+    min = timeWindow[0].getTime();
+    max = timeWindow[1].getTime();
+  } else {
+    const times = datapoints.map(dp => dp.x);
+    min = Math.min(...times);
+    max = Math.max(...times);
+  }
+  const bucketSize = (1 + max - min) / nbuckets;
+  const buckets = Array.from({ length: nbuckets }, (_, idx) => {
+    return { ...dpInject, x: Math.floor(min + idx * bucketSize + bucketSize / 2), y: [] as number[] };
+  });
+  const indexer = (t: number) => Math.floor((t - min) / bucketSize);
+  datapoints.forEach(dp => {
+    const idx = indexer(dp.x);
+    if (idx >= 0 && idx < buckets.length) {
+      buckets[idx].y.push(dp.y);
+    }
+  });
+  return buckets.filter(b => b.y.length > 0);
 };
 
 export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {

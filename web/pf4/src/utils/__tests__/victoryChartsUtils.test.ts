@@ -1,4 +1,4 @@
-import { getDataSupplier, findClosestDatapoint } from '../victoryChartsUtils';
+import { getDataSupplier, findClosestDatapoint, toBuckets } from '../victoryChartsUtils';
 import { empty, histogram, metric, metricWithLabels, emptyLabels, labelsWithPrettifier } from '../../types/__mocks__/Charts.mock';
 import { ChartModel } from '../..';
 
@@ -90,5 +90,38 @@ describe('Victory Charts Utils', () => {
     expect(point).toEqual({x: 20005, y: 1});
     point = findClosestDatapoint(lines, 2, 12, 10, 10);
     expect(point).toEqual({x: 10000, y: 0});
+  });
+
+  it('should build empty buckets', () => {
+    const buckets = toBuckets(4, [], {});
+    expect(buckets).toBeDefined();
+    expect(buckets).toHaveLength(0);
+  });
+
+  it('should build buckets', () => {
+    const dps = [
+      { name: '', x: 10000, y: 0 },
+      { name: '', x: 10100, y: -10 },
+      { name: '', x: 10300, y: 15 },
+      { name: '', x: 10800, y: 800 },
+      { name: '', x: 12400, y: 10 },
+      { name: '', x: 19100, y: -5 },
+      { name: '', x: 19300, y: -10 },
+      { name: '', x: 19400, y: -15 },
+      { name: '', x: 20000, y: -20 }
+    ];
+    // Shuffle
+    dps.sort(() => Math.random() - 0.5);
+
+    const buckets = toBuckets(10, dps, {});
+
+    // From the 10 demanded buckets, only 3 aren't empty
+    expect(buckets).toHaveLength(3);
+    expect(buckets[0].x).toEqual(10500);
+    expect(buckets[0].y).toHaveLength(4);
+    expect(buckets[1].x).toEqual(12500);
+    expect(buckets[1].y).toHaveLength(1);
+    expect(buckets[2].x).toEqual(19500);
+    expect(buckets[2].y).toHaveLength(4);
   });
 });
