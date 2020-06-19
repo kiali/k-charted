@@ -285,6 +285,9 @@ class ChartWithLegend extends React.Component<Props, State> {
   }
 
   private normalizeOverlay(factor: number): VCDataPoint[] {
+    // All data is relative to the first Y-axis, even if a second one is in use
+    // To make it appear as relative to the second axis, we need to normalize it, ie. apply the same scale factor that exists between the two axis
+    // This scale factor is stored in every datapoint so that it can be "reverted" when we need to retrieve the original value, e.g. in tooltips
     return this.props.overlay!.vcLine.datapoints.map(dp => ({ ...dp, y: dp.y * factor, scaleFactor: factor }));
   }
 }

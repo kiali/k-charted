@@ -82,7 +82,7 @@ storiesOf('PF4 KChart', module)
         return {...dp, x: new Date(dp.x.getTime() + 20000 * (Math.random() - 0.5))};
       });
     return (
-      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert(p.y / (p.scaleFactor || 1))} />
+      <KChart chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert('Y: ' + p.y)} />
     );
   })
   .add('histogram', () => (
@@ -93,9 +93,4 @@ storiesOf('PF4 KChart', module)
   ))
   .add('with error', () => (
     <KChart chart={error} data={getDataSupplier(empty, emptyLabels, colors)!()} />
-  ))
-  .add('start collapsed', () => {
-    reset();
-    const chart = { ...metric, startCollapsed: true };
-    return <KChart chart={chart} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
-  });
+  ));
