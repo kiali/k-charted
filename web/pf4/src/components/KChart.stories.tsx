@@ -66,4 +66,9 @@ storiesOf('PF4 KChart', module)
   ))
   .add('with error', () => (
     <KChart chart={error} data={getDataSupplier(empty, emptyLabels, colors)!()} />
-  ));
+  ))
+  .add('start collapsed', () => {
+    reset();
+    const chart = { ...metric, startCollapsed: true };
+    return <KChart chart={chart} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
+  });

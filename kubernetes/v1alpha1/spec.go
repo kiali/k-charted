@@ -50,18 +50,19 @@ type MonitoringDashboardItem struct {
 }
 
 type MonitoringDashboardChart struct {
-	Name         string                           `json:"name"`
-	Unit         string                           `json:"unit"`      // Stands for the base unit (regardless its scale in datasource)
-	UnitScale    float64                          `json:"unitScale"` // Stands for the scale of the values in datasource, related to the base unit provided. E.g. unit: "seconds" and unitScale: 0.001 means that values in datasource are actually in milliseconds.
-	Spans        int                              `json:"spans"`
-	ChartType    *string                          `json:"chartType"`
-	Min          *int                             `json:"min"`
-	Max          *int                             `json:"max"`
-	MetricName   string                           `json:"metricName"` // Deprecated; use Metrics instead
-	Metrics      []MonitoringDashboardMetric      `json:"metrics"`
-	DataType     string                           `json:"dataType"`   // DataType is either "raw", "rate" or "histogram"
-	Aggregator   string                           `json:"aggregator"` // Aggregator can be set for raw data. Ex: "sum", "avg". See https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators
-	Aggregations []MonitoringDashboardAggregation `json:"aggregations"`
+	Name           string                           `json:"name"`
+	Unit           string                           `json:"unit"`      // Stands for the base unit (regardless its scale in datasource)
+	UnitScale      float64                          `json:"unitScale"` // Stands for the scale of the values in datasource, related to the base unit provided. E.g. unit: "seconds" and unitScale: 0.001 means that values in datasource are actually in milliseconds.
+	Spans          int                              `json:"spans"`
+	StartCollapsed bool                             `json:"startCollapsed"`
+	ChartType      *string                          `json:"chartType"`
+	Min            *int                             `json:"min"`
+	Max            *int                             `json:"max"`
+	MetricName     string                           `json:"metricName"` // Deprecated; use Metrics instead
+	Metrics        []MonitoringDashboardMetric      `json:"metrics"`
+	DataType       string                           `json:"dataType"`   // DataType is either "raw", "rate" or "histogram"
+	Aggregator     string                           `json:"aggregator"` // Aggregator can be set for raw data. Ex: "sum", "avg". See https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators
+	Aggregations   []MonitoringDashboardAggregation `json:"aggregations"`
 }
 
 type MonitoringDashboardMetric struct {

@@ -25,14 +25,15 @@ type MonitoringDashboard struct {
 
 // Chart is the model representing a custom chart, transformed from charts in MonitoringDashboard k8s resource
 type Chart struct {
-	Name      string          `json:"name"`
-	Unit      string          `json:"unit"`
-	Spans     int             `json:"spans"`
-	ChartType *string         `json:"chartType,omitempty"`
-	Min       *int            `json:"min,omitempty"`
-	Max       *int            `json:"max,omitempty"`
-	Metrics   []*SampleStream `json:"metrics"`
-	Error     string          `json:"error"`
+	Name           string          `json:"name"`
+	Unit           string          `json:"unit"`
+	Spans          int             `json:"spans"`
+	StartCollapsed bool            `json:"startCollapsed"`
+	ChartType      *string         `json:"chartType,omitempty"`
+	Min            *int            `json:"min,omitempty"`
+	Max            *int            `json:"max,omitempty"`
+	Metrics        []*SampleStream `json:"metrics"`
+	Error          string          `json:"error"`
 }
 
 // BuildLabelsMap initiates a labels map out of a given metric name and optionally histogram stat
@@ -128,13 +129,14 @@ func convertSamplePair(from *pmod.SamplePair, scale float64) SamplePair {
 // ConvertChart converts a k8s chart (from MonitoringDashboard k8s resource) into this models chart
 func ConvertChart(from v1alpha1.MonitoringDashboardChart) Chart {
 	return Chart{
-		Name:      from.Name,
-		Unit:      from.Unit,
-		Spans:     from.Spans,
-		ChartType: from.ChartType,
-		Min:       from.Min,
-		Max:       from.Max,
-		Metrics:   []*SampleStream{},
+		Name:           from.Name,
+		Unit:           from.Unit,
+		Spans:          from.Spans,
+		StartCollapsed: from.StartCollapsed,
+		ChartType:      from.ChartType,
+		Min:            from.Min,
+		Max:            from.Max,
+		Metrics:        []*SampleStream{},
 	}
 }
 

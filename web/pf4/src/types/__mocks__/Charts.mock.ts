@@ -54,7 +54,8 @@ export const generateRandomScatterChart = (title: string, names: string[], spans
     unit: 'seconds',
     chartType: 'scatter',
     spans: spans,
-    metrics: genSeries(names.map(n => genLabels(n)))
+    metrics: genSeries(names.map(n => genLabels(n))),
+    startCollapsed: false
   };
 };
 
@@ -66,7 +67,8 @@ export const generateRandomMetricChartWithLabels = (title: string, labels: Label
     name: title,
     unit: 'bytes',
     spans: spans,
-    metrics: genSeries(labels)
+    metrics: genSeries(labels),
+    startCollapsed: false
   };
 };
 
@@ -92,7 +94,8 @@ export const generateRandomHistogramChart = (title: string, spans: SpanValue, se
     name: title,
     unit: 'bitrate',
     spans: spans,
-    metrics: histo
+    metrics: histo,
+    startCollapsed: false
   };
 };
 
@@ -104,7 +107,8 @@ export const empty: ChartModel = {
   name: 'Empty metric chart',
   unit: 'bytes',
   spans: 6,
-  metrics: []
+  metrics: [],
+  startCollapsed: false
 };
 
 export const error: ChartModel = {
@@ -112,7 +116,8 @@ export const error: ChartModel = {
   unit: 'bytes',
   spans: 6,
   metrics: [],
-  error: 'Unable to fetch metrics'
+  error: 'Unable to fetch metrics',
+  startCollapsed: false
 };
 
 export const metric: ChartModel = {
@@ -122,7 +127,8 @@ export const metric: ChartModel = {
   metrics: [{
     values: [[t0, 50.4], [t0 + increment, 48.2], [t0 + 2 * increment, 42.0]],
     labelSet: genLabels('Metric chart')
-  }]
+  }],
+  startCollapsed: false
 };
 
 export const histogram: ChartModel = {
@@ -136,7 +142,8 @@ export const histogram: ChartModel = {
       values: [[t0, 150.4], [t0 + increment, 148.2], [t0 + 2 * increment, 142.0]],
       labelSet: genLabels('Metric chart', '0.99')
     }
-  ]
+  ],
+  startCollapsed: false
 };
 
 export const emptyLabels: LabelsInfo = {
@@ -177,7 +184,8 @@ export const metricWithLabels: ChartModel = {
   }, {
     values: [[0, 0]],
     labelSet: {'code': 'foobaz'}
-  }]
+  }],
+  startCollapsed: false
 };
 
 export const genDates = (n: number): Date[] => {

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { style } from 'typestyle';
-import { Button, Text, TextContent, TextVariants } from '@patternfly/react-core';
+import { Button, EmptyState, EmptyStateIcon, EmptyStateBody, Expandable } from '@patternfly/react-core';
 import { ChartArea, ChartBar, ChartScatter, ChartLine } from '@patternfly/react-charts';
-import { ExpandArrowsAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
+import { CubesIcon, ExpandArrowsAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
 import { ChartModel } from '../../../common/types/Dashboards';
 import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
@@ -40,7 +40,18 @@ const noMetricsStyle = style({
   }
 });
 
-class KChart extends React.Component<KChartProps, {}> {
+type State = {
+  collapsed: boolean
+};
+
+class KChart extends React.Component<KChartProps, State> {
+  constructor(props: KChartProps) {
+    super(props);
+    this.state = {
+      collapsed: this.props.chart.startCollapsed || (!this.props.chart.error && this.isEmpty(this.props.data))
+    };
+  }
+
   onExpandHandler = () => {
     this.props.expandHandler!();
   }
@@ -56,12 +67,25 @@ class KChart extends React.Component<KChartProps, {}> {
   }
 
   render() {
-    if (this.props.chart.error) {
-      return this.renderError();
-    } else if (this.isEmpty(this.props.data)) {
-      return this.renderEmpty();
-    }
+    return (
+      <Expandable
+        toggleText={this.props.chart.name}
+        onToggle={() => {
+          this.setState({ collapsed: !this.state.collapsed });
+        }}
+        isExpanded={!this.state.collapsed}
+      >
+        {this.props.chart.error ? this.renderError()
+          : (this.isEmpty(this.props.data) ? this.renderEmpty()
+          : this.renderChart())}
+      </Expandable>
+    );
+  }
 
+  renderChart() {
+    if (this.state.collapsed) {
+      return undefined;
+    }
     let fill = false;
     let stroke = true;
     let seriesComponent = (<ChartLine/>);
@@ -84,24 +108,19 @@ class KChart extends React.Component<KChartProps, {}> {
     const maxDomain = this.props.chart.max === undefined ? undefined : { y: this.props.chart.max };
 
     return (
-      <>
-        <TextContent>
-          <Text component={TextVariants.h4} style={{textAlign: 'center'}}>{this.props.chart.name}</Text>
-        </TextContent>
-        <ChartWithLegend
-          data={this.props.data}
-          seriesComponent={seriesComponent}
-          fill={fill}
-          stroke={stroke}
-          groupOffset={groupOffset}
-          overlay={this.props.overlay}
-          unit={this.props.chart.unit}
-          moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
-          onClick={this.props.onClick}
-          brushHandlers={this.props.brushHandlers}
-          timeWindow={this.props.timeWindow}
-        />
-      </>
+      <ChartWithLegend
+        data={this.props.data}
+        seriesComponent={seriesComponent}
+        fill={fill}
+        stroke={stroke}
+        groupOffset={groupOffset}
+        overlay={this.props.overlay}
+        unit={this.props.chart.unit}
+        moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
+        onClick={this.props.onClick}
+        brushHandlers={this.props.brushHandlers}
+        timeWindow={this.props.timeWindow}
+      />
     );
   }
 
@@ -109,33 +128,27 @@ class KChart extends React.Component<KChartProps, {}> {
     return !data.some(s => s.datapoints.length !== 0);
   }
 
-  private renderNoMetric(jsx: JSX.Element) {
+  private renderEmpty() {
     return (
-      <div className={noMetricsStyle}>
-        <TextContent>
-          <Text component={TextVariants.h4}>
-            {this.props.chart.name}
-          </Text>
-        </TextContent>
-        <TextContent style={{paddingTop: 20, paddingBottom: 30}}>
-          <Text component={TextVariants.h5}>{jsx}</Text>
-        </TextContent>
-      </div>
+      <EmptyState>
+        <EmptyStateIcon icon={CubesIcon} />
+        <EmptyStateBody>No data available</EmptyStateBody>
+      </EmptyState>
     );
   }
 
-  private renderEmpty() {
-    return this.renderNoMetric(<>No data available</>);
-  }
-
   private renderError() {
-    return this.renderNoMetric((
-      <>
-        <ErrorCircleOIcon style={{color: '#cc0000', marginRight: 5}} />
-        An error occured while fetching this metric:
-        <p><i>{this.props.chart.error}</i></p>
-      </>
-    ));
+    return (
+      <EmptyState>
+        <EmptyStateIcon icon={() => (
+          <ErrorCircleOIcon style={{color: '#cc0000'}} width={32} height={32} />
+        )} />
+        <EmptyStateBody>
+          An error occured while fetching this metric:
+          <p><i>{this.props.chart.error}</i></p>
+        </EmptyStateBody>
+      </EmptyState>
+    );
   }
 }
 
