@@ -89,7 +89,15 @@ export const toBuckets = (nbuckets: number, datapoints: VCDataPoint[], dpInject:
   const bucketSize = (1 + max - min) / nbuckets;
   // Create $nbuckets buckets at regular intervals with preset / static content $dpInject
   const buckets = Array.from({ length: nbuckets }, (_, idx) => {
-    return { ...dpInject, x: xBuilder(Math.floor(min + idx * bucketSize + bucketSize / 2)), y: [] as number[] };
+    const start = Math.floor(min + idx * bucketSize);
+    const end = Math.floor(start + bucketSize - 1);
+    return {
+      ...dpInject,
+      start: xBuilder(start),
+      end: xBuilder(end),
+      x: xBuilder(Math.floor(start + bucketSize / 2)),
+      y: [] as number[]
+    };
   });
   datapoints.forEach(dp => {
     // Get bucket index from timestamp
