@@ -6,7 +6,8 @@ export type OverlayInfo = {
   dataStyle: any, // see "data" in https://formidable.com/open-source/victory/docs/common-props/#style
   color: string,
   symbol: string,
-  size: number
+  size: number,
+  buckets?: number;
 };
 
 export type Overlay = {

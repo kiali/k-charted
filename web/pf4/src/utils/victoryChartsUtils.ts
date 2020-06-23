@@ -1,4 +1,4 @@
-import { TimeSeries, Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
+import { Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
 import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
@@ -64,6 +64,44 @@ export const buildLegendInfo = (items: LegendItem[], chartWidth: number): Legend
   };
 };
 
+// toBuckets accumulates datapoints into bukets.
+// The result is still a (smaller) list of VCDataPoints, but with Y value being an array of values instead of a single value.
+// This data structure is required by VictoryBoxPlot object.
+export const toBuckets = (nbuckets: number, datapoints: VCDataPoint[], dpInject: any, timeWindow?: [Date, Date]): VCDataPoint[] => {
+  if (datapoints.length === 0) {
+    return [];
+  }
+  // xBuilder will preserve X-axis type when building buckets (either dates or raw numbers)
+  const xBuilder: (x: number) => number | Date = typeof datapoints[0].x === 'object'
+    ? x => new Date(x)
+    : x => x;
+
+  let min = 0;
+  let max = 0;
+  if (timeWindow) {
+    min = timeWindow[0].getTime();
+    max = timeWindow[1].getTime();
+  } else {
+    const times = datapoints.map(dp => dp.x);
+    min = Math.min(...times);
+    max = Math.max(...times);
+  }
+  const bucketSize = (1 + max - min) / nbuckets;
+  // Create $nbuckets buckets at regular intervals with preset / static content $dpInject
+  const buckets = Array.from({ length: nbuckets }, (_, idx) => {
+    return { ...dpInject, x: xBuilder(Math.floor(min + idx * bucketSize + bucketSize / 2)), y: [] as number[] };
+  });
+  datapoints.forEach(dp => {
+    // Get bucket index from timestamp
+    const idx = Math.floor((dp.x - min) / bucketSize);
+    // This index might be out of range when a timeWindow is provided, so protect against that
+    if (idx >= 0 && idx < buckets.length) {
+      buckets[idx].y.push(dp.y);
+    }
+  });
+  return buckets.filter(b => b.y.length > 0);
+};
+
 export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {
   const dpInject = {
     name: info.title,
@@ -78,38 +116,42 @@ export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {
   };
 };
 
-const createDomainConverter = (dps: VCDataPoint[], numFunc: (dp: VCDataPoint) => number) => {
+const createDomainConverter = (dps: VCDataPoint[], pxlSize: number, numFunc: (dp: VCDataPoint) => number) => {
   // Clicked position in screen coordinate (relative to svg element) are transformed in domain-data coordinate
   //  This is assuming a linear scale and no data padding
   const values = dps.map(dp => numFunc(dp));
   const min = Math.min(...values);
   const max = Math.max(...values);
+  const range = Math.max(1, max - min);
   return {
-    // Convert screen coords into domain coords
-    convert: (pxlPos: number, pxlSize: number) => min + (max - min) * pxlPos / pxlSize,
-    // Normalize a given distance relatively to the min/max domain
-    normalize: (dist: number) => dist / (max - min)
+    asPixels: (domain: number) => pxlSize * (domain - min) / range
   };
 };
 
 // findClosestDatapoint will search in all datapoints which is the closer to the given position in pixels
 //  This is done by converting screen coords into domain coords, then finding the least distance between this converted point and all the datapoints.
-export const findClosestDatapoint = (flatDP: VCDataPoint[], x: number, y: number, width: number, height: number): VCDataPoint | undefined => {
+export const findClosestDatapoint = (flatDP: VCDataPoint[], posX: number, posY: number, width: number, height: number): VCDataPoint | undefined => {
   if (width <= 0 || height <= 0 || flatDP.length === 0) {
     return undefined;
   }
+  // reversed y coords
+  posY = height - posY;
   const xNumFunc: (dp: VCDataPoint) => number = typeof flatDP[0].x === 'object' ? dp => dp.x.getTime() : dp => dp.x;
-  const xConv = createDomainConverter(flatDP, xNumFunc);
-  const yConv = createDomainConverter(flatDP,  dp => dp.y);
-  const clickedX = xConv.convert(x, width);
-  const clickedY = yConv.convert(height - y /* reversed y coords */, height);
+  // yFunc: When datapoint is a bucket, use the min value to locate position
+  // This is for consistency, as it's also the min that seems to be used for tooltips / voronoi (I'd prefer median otherwise)
+  const yFunc = (dp: VCDataPoint) => Array.isArray(dp.y) ? Math.min(...dp.y) : dp.y;
+  const xConv = createDomainConverter(flatDP, width, xNumFunc);
+  const yConv = createDomainConverter(flatDP, height, yFunc);
 
-  return flatDP.reduce((p: VCDataPoint, c: VCDataPoint) => {
-    if (p === null) {
-      return c;
-    }
-    const dist = xConv.normalize(Math.abs((clickedX - xNumFunc(c)))) + yConv.normalize(Math.abs(clickedY - c.y));
-    const prevDist = xConv.normalize(Math.abs((clickedX - xNumFunc(p)))) + yConv.normalize(Math.abs(clickedY - p.y));
-    return dist < prevDist ? c : p;
-  });
+  type DataPointDistance = {
+    dp: VCDataPoint,
+    dist: number
+  };
+  return flatDP.reduce((p: DataPointDistance, c: VCDataPoint) => {
+    const newDist: DataPointDistance = {
+      dp: c,
+      dist: Math.abs(posX - xConv.asPixels(xNumFunc(c))) + Math.abs(posY - yConv.asPixels(yFunc(c)))
+    };
+    return (p === null || newDist.dist < p.dist) ? newDist : p;
+  }, null).dp;
 };
