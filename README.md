@@ -128,8 +128,6 @@ Check out [`MetricsOption.ts`](https://github.com/kiali/k-charted/blob/master/we
 
 ## First build preparation
 
-Go vendors are commited so you don't need to pull them first (unless you want to update them, in which case you can run `make godep`).
-
 Install [*golangci-lint*](https://github.com/golangci/golangci-lint), example with v1.16.0:
 
 ```bash

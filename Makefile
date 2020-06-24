@@ -5,9 +5,6 @@ GO?=go
 .PHONY: pf4 pf4build pf4test pf4lint
 .PHONY: storybook
 
-godep:
-	glide up
-
 gobuild:
 	${GO} build
 
