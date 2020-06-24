@@ -2,25 +2,27 @@ import * as React from 'react';
 import { format as d3Format } from 'd3-format';
 import { getFormatter } from '../../../common/utils/formatter';
 import { CustomTooltip } from './CustomTooltip';
-import { VCDataPoint } from '../types/VictoryChartInfo';
+import { RichDataPoint } from '../types/VictoryChartInfo';
 
 import { VictoryVoronoiContainer, createContainer } from 'victory';
 
 type BrushDomain = { x: [number | Date, number | Date], y: [number, number] };
 
 export type BrushHandlers = {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   onCleared?: (domain: BrushDomain, props: any) => void,
   onDomainChange?: (domain: BrushDomain, props: any) => void,
   onDomainChangeEnd?: (domain: BrushDomain, props: any) => void
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 };
 
-const formatValue = (label: string, datum: VCDataPoint, value: number) => {
+const formatValue = (label: string, datum: RichDataPoint, value: number) => {
   // Formats a value based on unit and scale factor.
   // Scale factor is usually undefined, except when a second axis is in use (then it's the ratio between first axis and second axis maxs)
-  return label + ': ' + getFormatter(d3Format, datum.unit)(value / (datum.scaleFactor || 1));
+  return label + ': ' + getFormatter(d3Format, datum.unit!)(value / (datum.scaleFactor || 1));
 };
 
-export const newBrushVoronoiContainer = (onClick?: (event: any) => void, handlers?: BrushHandlers) => {
+export const newBrushVoronoiContainer = (onClick?: (event: MouseEvent) => void, handlers?: BrushHandlers) => {
   const voronoiProps = {
     labels: obj => {
       if (obj.datum._median !== undefined) {

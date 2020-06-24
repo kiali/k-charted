@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { style } from 'typestyle';
 import { Button, EmptyState, EmptyStateIcon, EmptyStateBody, Expandable } from '@patternfly/react-core';
 import { ChartArea, ChartBar, ChartScatter, ChartLine } from '@patternfly/react-charts';
-import { CubesIcon, ExpandArrowsAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
+import { CubesIcon, AngleDoubleLeftIcon, ExpandArrowsAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
 import { ChartModel } from '../../../common/types/Dashboards';
-import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
+import { VCLines, RawOrBucket } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import ChartWithLegend from './ChartWithLegend';
 import { BrushHandlers } from './Container';
@@ -13,32 +12,22 @@ import { BrushHandlers } from './Container';
 type KChartProps = {
   chart: ChartModel;
   data: VCLines;
-  expandHandler?: () => void;
-  onClick?: (datum: VCDataPoint) => void;
+  isMaximized: boolean;
+  onToggleMaximized: () => void;
+  onClick?: (datum: RawOrBucket) => void;
   brushHandlers?: BrushHandlers;
   overlay?: Overlay;
   timeWindow?: [Date, Date];
 };
 
-const expandBlockStyle: React.CSSProperties = {
-  marginBottom: '-1.5em',
+export const maximizeButtonStyle: React.CSSProperties = {
+  marginBottom: '-3.5em',
+  marginRight: '0.8em',
+  top: '-2.7em',
   zIndex: 1,
   position: 'relative',
-  textAlign: 'right'
+  float: 'right'
 };
-
-const noMetricsStyle = style({
-  width: '100%',
-  textAlign: 'center',
-  $nest: {
-    '& > p': {
-      font: '14px sans-serif',
-      margin: 0,
-      padding: 32,
-      paddingTop: 20
-    }
-  }
-});
 
 type State = {
   collapsed: boolean
@@ -50,20 +39,6 @@ class KChart extends React.Component<KChartProps, State> {
     this.state = {
       collapsed: this.props.chart.startCollapsed || (!this.props.chart.error && this.isEmpty(this.props.data))
     };
-  }
-
-  onExpandHandler = () => {
-    this.props.expandHandler!();
-  }
-
-  renderExpand = () => {
-    return (
-      <div style={expandBlockStyle}>
-        <Button onClick={this.onExpandHandler}>
-          Expand <ExpandArrowsAltIcon />
-        </Button>
-      </div>
-    );
   }
 
   render() {
@@ -108,19 +83,28 @@ class KChart extends React.Component<KChartProps, State> {
     const maxDomain = this.props.chart.max === undefined ? undefined : { y: this.props.chart.max };
 
     return (
-      <ChartWithLegend
-        data={this.props.data}
-        seriesComponent={seriesComponent}
-        fill={fill}
-        stroke={stroke}
-        groupOffset={groupOffset}
-        overlay={this.props.overlay}
-        unit={this.props.chart.unit}
-        moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
-        onClick={this.props.onClick}
-        brushHandlers={this.props.brushHandlers}
-        timeWindow={this.props.timeWindow}
-      />
+      <>
+        {this.props.onToggleMaximized && (
+          <div style={maximizeButtonStyle}>
+            <Button variant="secondary" onClick={this.props.onToggleMaximized}>
+              {this.props.isMaximized ? <AngleDoubleLeftIcon /> : <ExpandArrowsAltIcon />}
+            </Button>
+          </div>
+        )}
+        <ChartWithLegend
+          data={this.props.data}
+          seriesComponent={seriesComponent}
+          fill={fill}
+          stroke={stroke}
+          groupOffset={groupOffset}
+          overlay={this.props.overlay}
+          unit={this.props.chart.unit}
+          moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
+          onClick={this.props.onClick}
+          brushHandlers={this.props.brushHandlers}
+          timeWindow={this.props.timeWindow}
+        />
+      </>
     );
   }
 

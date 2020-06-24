@@ -198,6 +198,7 @@ export const genDates = (n: number): Date[] => {
   return dates;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const buildLine = (info: { name: string, unit: string, color: string }, xs: any[], values: number[], more?: any[]): VCLine => {
   return {
     datapoints: values.map((v, i) => {

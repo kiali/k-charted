@@ -20,7 +20,7 @@ const tracesXAsDates = {
   datapoints: traces.datapoints.map(t => {
     return {
       ...t,
-      x: new Date(now + t.x * 1000)
+      x: new Date(now + (t.x as number) * 1000)
     };
   })
 };

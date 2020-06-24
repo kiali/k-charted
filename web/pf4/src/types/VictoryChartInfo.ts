@@ -3,11 +3,37 @@ export interface LegendInfo {
   itemsPerRow: number;
 }
 
-export type VCDataPoint = any & {
-  name: string;
-  x: number | Date;
-  y: number;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Style = any;
+
+export type VCDataPoint = {
+  name: string,
+  x: number | Date | string,
+  y: number,
+  style?: Style
 };
+
+export type LineInfo = {
+  name: string,
+  color: string,
+  unit?: string,
+  symbol?: string,
+  size?: number,
+  scaleFactor?: number
+};
+
+export type RichDataPoint = VCDataPoint & LineInfo;
+
+type BucketDataPoint = {
+  name: string,
+  start: number | Date,
+  end: number | Date,
+  x: number | Date,
+  y: number[],
+  style?: Style
+};
+export type RichBucketDataPoint = BucketDataPoint & LineInfo;
+export type RawOrBucket = RichDataPoint | RichBucketDataPoint;
 
 export type LegendItem = {
   name: string;
@@ -26,7 +52,7 @@ export const makeLegend = (name: string, color: string, type?: string): LegendIt
 };
 
 export type VCLine = {
-  datapoints: VCDataPoint[];
+  datapoints: RichDataPoint[];
   color?: string;
   legendItem: LegendItem;
 };

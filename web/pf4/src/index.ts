@@ -8,7 +8,7 @@ import { TimeSeries } from '../../common/types/Metrics';
 import { Aggregator, MetricsQuery, DashboardQuery } from '../../common/types/MetricsOptions';
 import { DashboardRef, Runtime } from '../../common/types/Runtimes';
 import { toVCDatapoints, toVCLine, toOverlay } from './utils/victoryChartsUtils';
-import { VCLines, VCLine, VCDataPoint, LegendItem, makeLegend } from './types/VictoryChartInfo';
+import { VCLines, VCLine, VCDataPoint, RichDataPoint, RichBucketDataPoint, RawOrBucket, LegendItem, makeLegend } from './types/VictoryChartInfo';
 import { Overlay, OverlayInfo } from './types/Overlay';
 import { VCEvent, addLegendEvent } from './utils/events';
 
@@ -40,6 +40,9 @@ export {
   VCLines,
   VCLine,
   VCDataPoint,
+  RichDataPoint,
+  RichBucketDataPoint,
+  RawOrBucket,
   CustomTooltip,
   CustomLabel,
   VCEvent,

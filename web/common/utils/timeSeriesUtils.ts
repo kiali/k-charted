@@ -9,10 +9,10 @@ export type LabelsInfo = {
 
 const isVisibleMetric = (labels: LabelSet, labelValues: AllPromLabelsValues): boolean => {
   for (const promLabelName in labels) {
-    if (labels.hasOwnProperty(promLabelName)) {
+    if (Object.prototype.hasOwnProperty.call(labels, promLabelName)) {
       const actualValue = labels[promLabelName];
       const values = labelValues.get(promLabelName);
-      if (values && values.hasOwnProperty(actualValue) && !values[actualValue]) {
+      if (values && Object.prototype.hasOwnProperty.call(values, actualValue) && !values[actualValue]) {
         return false;
       }
     }

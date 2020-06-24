@@ -77,7 +77,7 @@ export class SparklineChart extends React.Component<Props, State> {
           legendName: this.props.name + '-legend',
           idx: idx,
           serieID: this.props.name + '-area-' + idx,
-          onClick: __ => {
+          onClick: () => {
             if (!this.state.hiddenSeries.delete(idx)) {
               // Was not already hidden => add to set
               this.state.hiddenSeries.add(idx);
