@@ -9,13 +9,13 @@ import {
 } from '@patternfly/react-charts';
 import { VictoryLegend } from 'victory';
 
-import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
+import { VCLines, VCDataPoint, RichDataPoint } from '../types/VictoryChartInfo';
 import { CustomTooltip } from './CustomTooltip';
 import { VCEvent, addLegendEvent } from '../utils/events';
 
 type Props = ChartProps & {
   name: string;
-  series: VCLines;
+  series: VCLines<RichDataPoint>;
   showLegend?: boolean;
   tooltipFormat?: (dp: VCDataPoint) => string;
 };

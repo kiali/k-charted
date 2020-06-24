@@ -24,7 +24,7 @@ export type LineInfo = {
 
 export type RichDataPoint = VCDataPoint & LineInfo;
 
-type BucketDataPoint = {
+export type BucketDataPoint = {
   name: string,
   start: number | Date,
   end: number | Date,
@@ -32,8 +32,7 @@ type BucketDataPoint = {
   y: number[],
   style?: Style
 };
-export type RichBucketDataPoint = BucketDataPoint & LineInfo;
-export type RawOrBucket = RichDataPoint | RichBucketDataPoint;
+export type RawOrBucket<T extends LineInfo> = T & (VCDataPoint | BucketDataPoint);
 
 export type LegendItem = {
   name: string;
@@ -51,10 +50,10 @@ export const makeLegend = (name: string, color: string, type?: string): LegendIt
   };
 };
 
-export type VCLine = {
-  datapoints: RichDataPoint[];
+export type VCLine<T extends RichDataPoint> = {
+  datapoints: T[];
   color?: string;
   legendItem: LegendItem;
 };
 
-export type VCLines = VCLine[];
+export type VCLines<T extends RichDataPoint> = VCLine<T>[];

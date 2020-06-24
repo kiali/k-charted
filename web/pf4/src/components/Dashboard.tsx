@@ -8,23 +8,23 @@ import { DashboardModel, ChartModel } from '../../../common/types/Dashboards';
 import { getDataSupplier } from '../utils/victoryChartsUtils';
 import { Overlay } from '../types/Overlay';
 import KChart from './KChart';
-import { RawOrBucket } from '../types/VictoryChartInfo';
+import { RawOrBucket, LineInfo } from '../types/VictoryChartInfo';
 import { BrushHandlers } from './Container';
 
 const expandedChartContainerStyle = style({
   height: 'calc(100vh - 248px)'
 });
 
-type Props = {
+type Props<T extends LineInfo> = {
   colors?: string[];
   dashboard: DashboardModel;
   maximizedChart?: string;
   expandHandler: (expandedChart?: string) => void;
   labelValues: AllPromLabelsValues;
   labelPrettifier?: (key: string, value: string) => string;
-  onClick?: (chart: ChartModel, datum: RawOrBucket) => void;
+  onClick?: (chart: ChartModel, datum: RawOrBucket<T>) => void;
   brushHandlers?: BrushHandlers;
-  overlay?: Overlay;
+  overlay?: Overlay<T>;
   timeWindow?: [Date, Date];
 };
 
@@ -32,8 +32,8 @@ type State = {
   maximizedChart?: string;
 };
 
-export class Dashboard extends React.Component<Props, State> {
-  constructor(props: Props) {
+export class Dashboard<T extends LineInfo> extends React.Component<Props<T>, State> {
+  constructor(props: Props<T>) {
     super(props);
     this.state = {
       maximizedChart: props.maximizedChart
@@ -61,9 +61,9 @@ export class Dashboard extends React.Component<Props, State> {
   private renderChart(chart: ChartModel) {
     const colors = this.props.colors || getTheme(ChartThemeColor.multi, ChartThemeVariant.default).chart.colorScale;
     const dataSupplier = getDataSupplier(chart, { values: this.props.labelValues, prettifier: this.props.labelPrettifier }, colors);
-    let onClick: ((datum: RawOrBucket) => void) | undefined = undefined;
+    let onClick: ((datum: RawOrBucket<T>) => void) | undefined = undefined;
     if (this.props.onClick) {
-      onClick = (datum: RawOrBucket) => this.props.onClick!(chart, datum);
+      onClick = (datum: RawOrBucket<T>) => this.props.onClick!(chart, datum);
     }
     return (
       <KChart

@@ -5,7 +5,7 @@ import { getDataSupplier, toOverlay, toVCDatapoints } from '../utils/victoryChar
 import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, generateRandomForOverlay, emptyLabels } from '../types/__mocks__/Charts.mock';
 
 import '@patternfly/react-core/dist/styles/base.css';
-import { OverlayInfo } from '../types/Overlay';
+import { LineInfo } from '../types/VictoryChartInfo';
 
 const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 12, 'kchart-seed');
 const histogram = generateRandomHistogramChart('Random histogram chart', 12, 'kchart-histo-seed');
@@ -50,7 +50,7 @@ storiesOf('PF4 KChart', module)
   })
   .add('with overlay', () => {
     reset();
-    const info: OverlayInfo = {
+    const info = {
       lineInfo: {
         name: 'Span duration',
         unit: 'seconds',
@@ -62,12 +62,18 @@ storiesOf('PF4 KChart', module)
     };
     const dps = toVCDatapoints(generateRandomForOverlay(), info.lineInfo.name);
     return (
-      <KChart {...defaultProps} chart={metric} data={getDataSupplier(metric, emptyLabels, colors)!()} overlay={toOverlay(info, dps)} onClick={p => alert(p.y as number / (p.scaleFactor || 1))} />
+      <KChart
+        {...defaultProps}
+        chart={metric}
+        data={getDataSupplier(metric, emptyLabels, colors)!()}
+        overlay={toOverlay(info, dps)}
+        onClick={p => alert(p.y as number / ((p as LineInfo).scaleFactor || 1))}
+      />
     );
   })
   .add('with bucketed overlay', () => {
     reset();
-    const info: OverlayInfo = {
+    const info = {
       lineInfo: {
         name: 'Span duration',
         unit: 'seconds',

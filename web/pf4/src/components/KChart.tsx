@@ -4,19 +4,19 @@ import { ChartArea, ChartBar, ChartScatter, ChartLine } from '@patternfly/react-
 import { CubesIcon, AngleDoubleLeftIcon, ExpandArrowsAltIcon, ErrorCircleOIcon } from '@patternfly/react-icons';
 
 import { ChartModel } from '../../../common/types/Dashboards';
-import { VCLines, RawOrBucket } from '../types/VictoryChartInfo';
+import { VCLines, RawOrBucket, RichDataPoint, LineInfo } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import ChartWithLegend from './ChartWithLegend';
 import { BrushHandlers } from './Container';
 
-type KChartProps = {
+type KChartProps<T extends LineInfo> = {
   chart: ChartModel;
-  data: VCLines;
+  data: VCLines<RichDataPoint>;
   isMaximized: boolean;
   onToggleMaximized: () => void;
-  onClick?: (datum: RawOrBucket) => void;
+  onClick?: (datum: RawOrBucket<T>) => void;
   brushHandlers?: BrushHandlers;
-  overlay?: Overlay;
+  overlay?: Overlay<T>;
   timeWindow?: [Date, Date];
 };
 
@@ -33,11 +33,11 @@ type State = {
   collapsed: boolean
 };
 
-class KChart extends React.Component<KChartProps, State> {
-  constructor(props: KChartProps) {
+class KChart<T extends LineInfo> extends React.Component<KChartProps<T>, State> {
+  constructor(props: KChartProps<T>) {
     super(props);
     this.state = {
-      collapsed: this.props.chart.startCollapsed || (!this.props.chart.error && this.isEmpty(this.props.data))
+      collapsed: this.props.chart.startCollapsed || (!this.props.chart.error && this.isEmpty())
     };
   }
 
@@ -51,7 +51,7 @@ class KChart extends React.Component<KChartProps, State> {
         isExpanded={!this.state.collapsed}
       >
         {this.props.chart.error ? this.renderError()
-          : (this.isEmpty(this.props.data) ? this.renderEmpty()
+          : (this.isEmpty() ? this.renderEmpty()
           : this.renderChart())}
       </Expandable>
     );
@@ -108,8 +108,8 @@ class KChart extends React.Component<KChartProps, State> {
     );
   }
 
-  private isEmpty(data: VCLines): boolean {
-    return !data.some(s => s.datapoints.length !== 0);
+  private isEmpty(): boolean {
+    return !this.props.data.some(s => s.datapoints.length !== 0);
   }
 
   private renderEmpty() {

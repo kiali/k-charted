@@ -1,11 +1,11 @@
-import { RawOrBucket } from "../types/VictoryChartInfo";
+import { RawOrBucket, LineInfo } from "../types/VictoryChartInfo";
 
 interface EventItem {
   legendName: string;
   idx: number;
   serieID: string;
-  onClick?: (props: RawOrBucket) => Partial<RawOrBucket> | null;
-  onMouseOver?: (props: RawOrBucket) => Partial<RawOrBucket> | null;
+  onClick?: (props: RawOrBucket<LineInfo>) => Partial<RawOrBucket<LineInfo>> | null;
+  onMouseOver?: (props: RawOrBucket<LineInfo>) => Partial<RawOrBucket<LineInfo>> | null;
 }
 
 export type VCEvent = {
@@ -24,7 +24,7 @@ type EventHandlers = {
 type EventMutation = {
   childName: string[];
   target: string;
-  mutation: (props: RawOrBucket) => Partial<RawOrBucket> | null;
+  mutation: (props: RawOrBucket<LineInfo>) => Partial<RawOrBucket<LineInfo>> | null;
 };
 
 export const addLegendEvent = (events: VCEvent[], item: EventItem): void => {

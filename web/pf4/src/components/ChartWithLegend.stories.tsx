@@ -1,13 +1,13 @@
 import React from 'react';
 import { ChartScatter, ChartLine } from '@patternfly/react-charts';
 import { storiesOf } from '@storybook/react';
-
 import '@patternfly/react-core/dist/styles/base.css';
+
 import ChartWithLegend from './ChartWithLegend';
-import { VCLine, makeLegend, VCLines } from '../types/VictoryChartInfo';
+import { VCLine, makeLegend, RichDataPoint } from '../types/VictoryChartInfo';
 import { buildLine } from '../types/__mocks__/Charts.mock';
 
-const traces: VCLine = buildLine(
+const traces = buildLine(
   { name: 'span duration', unit: 'seconds', color: 'blue' },
   [0, 4, 5, 8, 16],
   [0.62, 0.80, 0.83, 0.45, 0.152],
@@ -36,12 +36,12 @@ const tracesXAsDatesBis = {
   legendItem: makeLegend('span duration 2', 'lightblue')
 };
 
-const crossing: VCLines = [
+const crossing = [
   buildLine({ name: 'mm 1', unit: 'ms', color: 'cyan' }, [0, 1, 2], [1, 3, 2]),
   buildLine({ name: 'much longer serie name 2', unit: '', color: 'orange' }, [0, 1, 2], [2, 3, 1])
 ];
 
-class InChartNav extends React.Component<{}, { from: Date, to: Date, data: VCLine }> {
+class InChartNav extends React.Component<{}, { from: Date, to: Date, data: VCLine<RichDataPoint> }> {
   constructor(props: {}) {
     super(props);
     this.state = { from: new Date(now - 40000), to: new Date(now + 40000), data: tracesXAsDates };

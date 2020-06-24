@@ -4,21 +4,21 @@ import { VictoryLegend, VictoryPortal, VictoryLabel, VictoryBoxPlot } from 'vict
 import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
-import { VCLines, LegendItem, LineInfo, RichDataPoint, RawOrBucket } from '../types/VictoryChartInfo';
+import { VCLines, LegendItem, LineInfo, RichDataPoint, RawOrBucket, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { newBrushVoronoiContainer, BrushHandlers } from './Container';
 import { buildLegendInfo, findClosestDatapoint, toBuckets } from '../utils/victoryChartsUtils';
 import { VCEvent, addLegendEvent } from '../utils/events';
 
-type Props = {
+type Props<T extends RichDataPoint, O extends LineInfo> = {
   chartHeight?: number;
-  data: VCLines;
+  data: VCLines<T & VCDataPoint>;
   fill?: boolean;
   groupOffset?: number;
   moreChartProps?: ChartProps;
-  onClick?: (datum: RawOrBucket) => void;
+  onClick?: (datum: RawOrBucket<O>) => void;
   brushHandlers?: BrushHandlers;
-  overlay?: Overlay;
+  overlay?: Overlay<O>;
   seriesComponent: React.ReactElement;
   stroke?: boolean;
   timeWindow?: [Date, Date];
@@ -34,20 +34,14 @@ type Padding = { top: number, left: number, right: number, bottom: number };
 
 const overlayName = 'overlay';
 
-class ChartWithLegend extends React.Component<Props, State> {
+class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React.Component<Props<T, O>, State> {
   containerRef: React.RefObject<HTMLDivElement>;
 
-  constructor(props: Props) {
+  constructor(props: Props<T, O>) {
     super(props);
     this.containerRef = React.createRef<HTMLDivElement>();
     this.state = { width: 0, hiddenSeries: new Set([overlayName]) };
   }
-
-  handleResize = () => {
-    if (this.containerRef && this.containerRef.current) {
-      this.setState({ width: this.containerRef.current.clientWidth });
-    }
-  };
 
   componentDidMount() {
     setTimeout(() => {
@@ -77,7 +71,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     const events: VCEvent[] = [];
     this.props.data.forEach((s, idx) => this.registerEvents(events, idx, 'serie-' + idx, s.legendItem.name));
     let useSecondAxis = showOverlay;
-    let normalizedOverlay: RawOrBucket[] = [];
+    let normalizedOverlay: RawOrBucket<O>[] = [];
     let overlayFactor = 1.0;
     if (this.props.overlay) {
       this.registerEvents(events, overlayIdx, overlayName, overlayName);
@@ -96,8 +90,8 @@ class ChartWithLegend extends React.Component<Props, State> {
       normalizedOverlay = this.normalizeOverlay(overlayFactor);
       if (this.props.overlay.info.buckets) {
         // Transform to bucketed stats
-        const model: LineInfo = { ...this.props.overlay.info.lineInfo, scaleFactor: overlayFactor };
-        normalizedOverlay = toBuckets(this.props.overlay.info.buckets, normalizedOverlay as RichDataPoint[], model, this.props.timeWindow);
+        const model: O = { ...this.props.overlay.info.lineInfo, scaleFactor: overlayFactor };
+        normalizedOverlay = toBuckets(this.props.overlay.info.buckets, normalizedOverlay as (VCDataPoint & O)[], model, this.props.timeWindow);
       }
     }
     const { dataEvents, onClick } = this.registerClickEvents(padding, height, showOverlay ? normalizedOverlay : undefined);
@@ -188,6 +182,12 @@ class ChartWithLegend extends React.Component<Props, State> {
     );
   }
 
+  private handleResize = () => {
+    if (this.containerRef && this.containerRef.current) {
+      this.setState({ width: this.containerRef.current.clientWidth });
+    }
+  };
+
   private buildLegendData(): LegendItem[] {
     const items = this.props.data.map(s => {
       if (this.state.hiddenSeries.has(s.legendItem.name)) {
@@ -226,7 +226,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     });
   }
 
-  private registerClickEvents(padding: Padding, height: number, normalizedOverlay?: RawOrBucket[]) {
+  private registerClickEvents(padding: Padding, height: number, normalizedOverlay?: RawOrBucket<O>[]) {
     const dataEvents: VCEvent[] = [];
     let onClick: ((event: MouseEvent) => void) | undefined = undefined;
     if (this.props.onClick) {
@@ -240,7 +240,7 @@ class ChartWithLegend extends React.Component<Props, State> {
         pt.x = event.clientX;
         pt.y = event.clientY;
         const clicked = pt.matrixTransform(svg.getScreenCTM()!.inverse());
-        let flatDP: RawOrBucket[] = this.props.data.flatMap<RawOrBucket>(line => line.datapoints);
+        let flatDP: RawOrBucket<LineInfo>[] = this.props.data.flatMap<RawOrBucket<LineInfo>>(line => line.datapoints);
         if (normalizedOverlay) {
           flatDP = flatDP.concat(normalizedOverlay);
         }
@@ -251,7 +251,7 @@ class ChartWithLegend extends React.Component<Props, State> {
           this.state.width - padding.left - padding.right,
           height - padding.top - padding.bottom);
         if (closest) {
-          this.props.onClick!(closest);
+          this.props.onClick!(closest as RawOrBucket<O>);
         }
       };
 
@@ -268,7 +268,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     return { dataEvents: dataEvents, onClick: onClick };
   }
 
-  private scaledAxisInfo(data: VCLines) {
+  private scaledAxisInfo(data: VCLines<VCDataPoint & T>) {
     const ticks = Math.max(...(data.map(s => s.datapoints.length)));
     if (this.state.width < 500) {
       return {
@@ -287,7 +287,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     };
   }
 
-  private normalizeOverlay(factor: number): RichDataPoint[] {
+  private normalizeOverlay(factor: number): (VCDataPoint & O)[] {
     // All data is relative to the first Y-axis, even if a second one is in use
     // To make it appear as relative to the second axis, we need to normalize it, ie. apply the same scale factor that exists between the two axis
     // This scale factor is stored in every datapoint so that it can be "reverted" when we need to retrieve the original value, e.g. in tooltips
