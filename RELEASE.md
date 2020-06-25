@@ -2,23 +2,20 @@
 
 ## Release candidate
 
-Quite often a change in k-charted impacts the interfacing with Kiali, so it's better to do a release candidate as a first step so that it can be consumed and tested before the final release. The suggested release & delivery process here is:
+Quite often a change in k-charted impacts the interfacing with Kiali, so it's better to do a release candidate as a first step so that it can be consumed and tested before the final release.
 
-- Get the changes in k-charted merged
-- If these changes impact the frontend, run `make pf4` then publish to NPM a new release candidate (x.y.z-rc0). No need to commit this version upgrade.
-- In Kiali backend `glide.yaml`, point to the k-charted commit SHA.
-- In Kiali frontend `package.json`, point to the release candidate.
-- At this point the PRs in Kiali can be merged.
-- Keep pointing to release candidates (rcX / SHA) til end of sprint.
-- Ideally 2-3 days before the end of the sprint, release the definitive version of k-charted (as explained below) and update Kiali `glide.yaml` and `package.json` accordingly.
+This is roughly the same steps as a normal release, with version being like `x.y.z-rcN`.
+Ideally 2-3 days before the end of a sprint, the final release should be done to avoid having Kiali release pointing to RC. It's just as a matter of cleanliness, as the code remains the same.
+
+In Kiali, `glide.yaml` and `package.json` need to be updated according to version change.
 
 ## Final release
 
 This is currently a manual process:
 
-- Bump versions in `web/pf4/package.json`
+- Bump version in `web/pf4/package.json`
 
-- Commit bumped versions, with commit message such as "Release x.y.z"
+- Commit bumped version, with commit message such as "Release x.y.z"
 
 - Build / lint / test everything
 
