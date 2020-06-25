@@ -1,16 +1,18 @@
 SHELL=/bin/bash
+GO?=go
 
-godep:
-	glide up
+.PHONY: go gobuild gotest golint
+.PHONY: pf4 pf4build pf4test pf4lint
+.PHONY: storybook
 
 gobuild:
-	go build
+	${GO} build
 
 pf4build:
 	cd web/pf4 && yarn && yarn build
 
 gotest:
-	go test ./...
+	${GO} test ./...
 
 pf4test:
 	cd web/pf4 && yarn test
