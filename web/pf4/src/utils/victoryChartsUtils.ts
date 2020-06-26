@@ -1,5 +1,5 @@
 import { Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
-import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend } from '../types/VictoryChartInfo';
+import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend, RichDataPoint, LineInfo, RawOrBucket, BucketDataPoint } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel } from '../../../common/types/Dashboards';
 import { Overlay, OverlayInfo } from '../types/Overlay';
@@ -8,25 +8,25 @@ export const toVCDatapoints = (dps: Datapoint[], name: string): VCDataPoint[] =>
   return dps.map(dp => {
       return {
         name: name,
-        x: new Date(dp[0] * 1000) as any,
+        x: new Date(dp[0] * 1000),
         y: Number(dp[1]),
       };
     })
     .filter(dp => !isNaN(dp.y));
 };
 
-export const toVCLine = (dps: VCDataPoint[], dpInject: { unit: string, color: string } & any): VCLine => {
-  const datapoints = dps.map(dp => ({ ...dpInject, ...dp }));
-  const legendItem: LegendItem = makeLegend(dpInject.name, dpInject.color, dpInject.symbol);
+export const toVCLine = <T extends LineInfo>(dps: VCDataPoint[], lineInfo: T): VCLine<VCDataPoint & T> => {
+  const datapoints: (VCDataPoint & T)[] = dps.map(dp => ({ ...lineInfo, ...dp }));
+  const legendItem: LegendItem = makeLegend(lineInfo.name, lineInfo.color, lineInfo.symbol);
   return {
     datapoints: datapoints,
     legendItem: legendItem,
-    color: dpInject.color
+    color: lineInfo.color
   };
 };
 
 let colorsIdx = 0;
-const toVCLines = (ts: NamedTimeSeries[], unit: string, colors: string[]): VCLines => {
+const toVCLines = (ts: NamedTimeSeries[], unit: string, colors: string[]): VCLines<RichDataPoint> => {
   return ts.map(line => {
     const color = colors[colorsIdx % colors.length];
     colorsIdx++;
@@ -34,7 +34,7 @@ const toVCLines = (ts: NamedTimeSeries[], unit: string, colors: string[]): VCLin
   });
 };
 
-export const getDataSupplier = (chart: ChartModel, labels: LabelsInfo, colors: string[]): (() => VCLines) => {
+export const getDataSupplier = (chart: ChartModel, labels: LabelsInfo, colors: string[]): (() => VCLines<RichDataPoint>) => {
   return () => {
     colorsIdx = 0;
     const filtered = filterAndNameMetric(chart.metrics, labels);
@@ -67,7 +67,7 @@ export const buildLegendInfo = (items: LegendItem[], chartWidth: number): Legend
 // toBuckets accumulates datapoints into bukets.
 // The result is still a (smaller) list of VCDataPoints, but with Y value being an array of values instead of a single value.
 // This data structure is required by VictoryBoxPlot object.
-export const toBuckets = (nbuckets: number, datapoints: VCDataPoint[], dpInject: any, timeWindow?: [Date, Date]): VCDataPoint[] => {
+export const toBuckets = <T extends LineInfo>(nbuckets: number, datapoints: VCDataPoint[], lineInfo: T, timeWindow?: [Date, Date]): (T & BucketDataPoint)[] => {
   if (datapoints.length === 0) {
     return [];
   }
@@ -82,26 +82,26 @@ export const toBuckets = (nbuckets: number, datapoints: VCDataPoint[], dpInject:
     min = timeWindow[0].getTime();
     max = timeWindow[1].getTime();
   } else {
-    const times = datapoints.map(dp => dp.x);
+    const times = datapoints.map(dp => Number(dp.x));
     min = Math.min(...times);
     max = Math.max(...times);
   }
   const bucketSize = (1 + max - min) / nbuckets;
   // Create $nbuckets buckets at regular intervals with preset / static content $dpInject
-  const buckets = Array.from({ length: nbuckets }, (_, idx) => {
+  const buckets: (T & BucketDataPoint)[] = Array.from({ length: nbuckets }, (_, idx) => {
     const start = Math.floor(min + idx * bucketSize);
     const end = Math.floor(start + bucketSize - 1);
     return {
-      ...dpInject,
+      ...lineInfo,
       start: xBuilder(start),
       end: xBuilder(end),
       x: xBuilder(Math.floor(start + bucketSize / 2)),
-      y: [] as number[]
+      y: []
     };
   });
   datapoints.forEach(dp => {
     // Get bucket index from timestamp
-    const idx = Math.floor((dp.x - min) / bucketSize);
+    const idx = Math.floor((Number(dp.x) - min) / bucketSize);
     // This index might be out of range when a timeWindow is provided, so protect against that
     if (idx >= 0 && idx < buckets.length) {
       buckets[idx].y.push(dp.y);
@@ -110,21 +110,14 @@ export const toBuckets = (nbuckets: number, datapoints: VCDataPoint[], dpInject:
   return buckets.filter(b => b.y.length > 0);
 };
 
-export const toOverlay = (info: OverlayInfo, dps: VCDataPoint[]): Overlay => {
-  const dpInject = {
-    name: info.title,
-    unit: info.unit,
-    color: info.color,
-    symbol: info.symbol,
-    size: info.size
-  };
+export const toOverlay = <T extends LineInfo>(info: OverlayInfo<T>, dps: VCDataPoint[]): Overlay<T> => {
   return {
     info: info,
-    vcLine: toVCLine(dps, dpInject)
+    vcLine: toVCLine(dps, info.lineInfo)
   };
 };
 
-const createDomainConverter = (dps: VCDataPoint[], pxlSize: number, numFunc: (dp: VCDataPoint) => number) => {
+const createDomainConverter = <T extends LineInfo>(dps: RawOrBucket<T>[], pxlSize: number, numFunc: (dp: RawOrBucket<T>) => number) => {
   // Clicked position in screen coordinate (relative to svg element) are transformed in domain-data coordinate
   //  This is assuming a linear scale and no data padding
   const values = dps.map(dp => numFunc(dp));
@@ -138,28 +131,28 @@ const createDomainConverter = (dps: VCDataPoint[], pxlSize: number, numFunc: (dp
 
 // findClosestDatapoint will search in all datapoints which is the closer to the given position in pixels
 //  This is done by converting screen coords into domain coords, then finding the least distance between this converted point and all the datapoints.
-export const findClosestDatapoint = (flatDP: VCDataPoint[], posX: number, posY: number, width: number, height: number): VCDataPoint | undefined => {
+export const findClosestDatapoint = <T extends LineInfo>(flatDP: RawOrBucket<T>[], posX: number, posY: number, width: number, height: number): RawOrBucket<T> | undefined => {
   if (width <= 0 || height <= 0 || flatDP.length === 0) {
     return undefined;
   }
   // reversed y coords
   posY = height - posY;
-  const xNumFunc: (dp: VCDataPoint) => number = typeof flatDP[0].x === 'object' ? dp => dp.x.getTime() : dp => dp.x;
+  const xNumFunc: (dp: RawOrBucket<T>) => number = typeof flatDP[0].x === 'object' ? dp => (dp.x as Date).getTime() : dp => dp.x as number;
   // yFunc: When datapoint is a bucket, use the min value to locate position
   // This is for consistency, as it's also the min that seems to be used for tooltips / voronoi (I'd prefer median otherwise)
-  const yFunc = (dp: VCDataPoint) => Array.isArray(dp.y) ? Math.min(...dp.y) : dp.y;
+  const yFunc = (dp: RawOrBucket<T>) => Array.isArray(dp.y) ? Math.min(...dp.y) : dp.y;
   const xConv = createDomainConverter(flatDP, width, xNumFunc);
   const yConv = createDomainConverter(flatDP, height, yFunc);
 
   type DataPointDistance = {
-    dp: VCDataPoint,
+    dp: RawOrBucket<T>,
     dist: number
   };
-  return flatDP.reduce((p: DataPointDistance, c: VCDataPoint) => {
+  return flatDP.reduce((p: DataPointDistance | null, c: RawOrBucket<T>) => {
     const newDist: DataPointDistance = {
       dp: c,
       dist: Math.abs(posX - xConv.asPixels(xNumFunc(c))) + Math.abs(posY - yConv.asPixels(yFunc(c)))
     };
     return (p === null || newDist.dist < p.dist) ? newDist : p;
-  }, null).dp;
+  }, null)!.dp;
 };

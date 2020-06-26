@@ -9,13 +9,13 @@ import {
 } from '@patternfly/react-charts';
 import { VictoryLegend } from 'victory';
 
-import { VCLines, VCDataPoint } from '../types/VictoryChartInfo';
+import { VCLines, VCDataPoint, RichDataPoint } from '../types/VictoryChartInfo';
 import { CustomTooltip } from './CustomTooltip';
 import { VCEvent, addLegendEvent } from '../utils/events';
 
 type Props = ChartProps & {
   name: string;
-  series: VCLines;
+  series: VCLines<RichDataPoint>;
   showLegend?: boolean;
   tooltipFormat?: (dp: VCDataPoint) => string;
 };
@@ -77,7 +77,7 @@ export class SparklineChart extends React.Component<Props, State> {
           legendName: this.props.name + '-legend',
           idx: idx,
           serieID: this.props.name + '-area-' + idx,
-          onClick: __ => {
+          onClick: () => {
             if (!this.state.hiddenSeries.delete(idx)) {
               // Was not already hidden => add to set
               this.state.hiddenSeries.add(idx);

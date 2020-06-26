@@ -1,16 +1,13 @@
-import { VCLine } from './VictoryChartInfo';
+import { VCLine, LineInfo, VCDataPoint } from './VictoryChartInfo';
 
-export type OverlayInfo = {
-  title: string,
-  unit: string,
+export type OverlayInfo<T extends LineInfo> = {
+  lineInfo: T,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dataStyle: any, // see "data" in https://formidable.com/open-source/victory/docs/common-props/#style
-  color: string,
-  symbol: string,
-  size: number,
-  buckets?: number;
+  buckets?: number
 };
 
-export type Overlay = {
-  vcLine: VCLine,
-  info: OverlayInfo
+export type Overlay<T extends LineInfo> = {
+  vcLine: VCLine<VCDataPoint & T>,
+  info: OverlayInfo<T>
 };

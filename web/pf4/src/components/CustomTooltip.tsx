@@ -1,12 +1,14 @@
 import * as React from 'react';
-import { ChartTooltip } from '@patternfly/react-charts';
+import { ChartTooltip, ChartTooltipProps } from '@patternfly/react-charts';
 import { Flyout, Point, VictoryLabel } from 'victory';
 
 const dy = 15;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const canvasContext: any = document.createElement('canvas').getContext('2d');
 // TODO: safe way to get this programmatically?
 canvasContext.font = '14px overpass';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const CustomLabel = (props: any & { textWidth: number }) => {
   const nbTexts = Array.isArray(props.text) ? props.text.length : 1;
   const x = props.x - 11 - props.textWidth / 2;
@@ -27,13 +29,13 @@ export const CustomLabel = (props: any & { textWidth: number }) => {
             />
           );
         })
-      })}
+      }
       <VictoryLabel {...props} />
     </>
   );
 };
 
-export const CustomTooltip = (props: any) => {
+export const CustomTooltip = (props: ChartTooltipProps & { onClick?: (event: MouseEvent) => void }) => {
   const texts: Array<string> = Array.isArray(props.text) ? props.text : [props.text];
   const textWidth = Math.max(...texts.map(t => canvasContext.measureText(t).width));
   return (

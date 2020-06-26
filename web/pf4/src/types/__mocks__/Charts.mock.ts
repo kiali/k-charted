@@ -2,7 +2,7 @@ import seedrandom from 'seedrandom';
 import { ChartModel, SpanValue } from '../../../../common/types/Dashboards';
 import { TimeSeries, Datapoint } from '../../../../common/types/Metrics';
 import { LabelsInfo } from '../../../../common/utils/timeSeriesUtils';
-import { makeLegend, VCLine } from '../VictoryChartInfo';
+import { makeLegend, VCLine, RichDataPoint, LineInfo } from '../VictoryChartInfo';
 import { LabelSet, statLabel, nameLabel } from '../../../../common/types/Labels';
 
 const t0 = 1556802000;
@@ -198,7 +198,8 @@ export const genDates = (n: number): Date[] => {
   return dates;
 };
 
-export const buildLine = (info: { name: string, unit: string, color: string }, xs: any[], values: number[], more?: any[]): VCLine => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const buildLine = (info: LineInfo, xs: any[], values: number[], more?: any[]): VCLine<RichDataPoint> => {
   return {
     datapoints: values.map((v, i) => {
       return {

@@ -4,21 +4,21 @@ import { VictoryLegend, VictoryPortal, VictoryLabel, VictoryBoxPlot } from 'vict
 import { format as d3Format } from 'd3-format';
 
 import { getFormatter } from '../../../common/utils/formatter';
-import { VCLines, VCDataPoint, LegendItem } from '../types/VictoryChartInfo';
+import { VCLines, LegendItem, LineInfo, RichDataPoint, RawOrBucket, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { newBrushVoronoiContainer, BrushHandlers } from './Container';
 import { buildLegendInfo, findClosestDatapoint, toBuckets } from '../utils/victoryChartsUtils';
 import { VCEvent, addLegendEvent } from '../utils/events';
 
-type Props = {
+type Props<T extends RichDataPoint, O extends LineInfo> = {
   chartHeight?: number;
-  data: VCLines;
+  data: VCLines<T & VCDataPoint>;
   fill?: boolean;
   groupOffset?: number;
   moreChartProps?: ChartProps;
-  onClick?: (datum: VCDataPoint) => void;
+  onClick?: (datum: RawOrBucket<O>) => void;
   brushHandlers?: BrushHandlers;
-  overlay?: Overlay;
+  overlay?: Overlay<O>;
   seriesComponent: React.ReactElement;
   stroke?: boolean;
   timeWindow?: [Date, Date];
@@ -30,22 +30,18 @@ type State = {
   hiddenSeries: Set<string>;
 };
 
+type Padding = { top: number, left: number, right: number, bottom: number };
+
 const overlayName = 'overlay';
 
-class ChartWithLegend extends React.Component<Props, State> {
+class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React.Component<Props<T, O>, State> {
   containerRef: React.RefObject<HTMLDivElement>;
 
-  constructor(props: Props) {
+  constructor(props: Props<T, O>) {
     super(props);
     this.containerRef = React.createRef<HTMLDivElement>();
     this.state = { width: 0, hiddenSeries: new Set([overlayName]) };
   }
-
-  handleResize = () => {
-    if (this.containerRef && this.containerRef.current) {
-      this.setState({ width: this.containerRef.current.clientWidth });
-    }
-  };
 
   componentDidMount() {
     setTimeout(() => {
@@ -65,17 +61,17 @@ class ChartWithLegend extends React.Component<Props, State> {
     const legendData = this.buildLegendData();
     const legend = buildLegendInfo(legendData, this.state.width);
     const overlayIdx = this.props.data.length;
-    const showOverlay = this.props.overlay && !this.state.hiddenSeries.has(overlayName);
+    const showOverlay = (this.props.overlay && !this.state.hiddenSeries.has(overlayName)) || false;
     const overlayRightPadding = showOverlay ? 30 : 0;
 
     const height = (this.props.chartHeight || 300) + legend.height;
-    const padding = { top: 10, bottom: 20, left: 40, right: 10 + overlayRightPadding };
+    const padding: Padding = { top: 10, bottom: 20, left: 40, right: 10 + overlayRightPadding };
     padding.bottom += legend.height;
 
     const events: VCEvent[] = [];
     this.props.data.forEach((s, idx) => this.registerEvents(events, idx, 'serie-' + idx, s.legendItem.name));
     let useSecondAxis = showOverlay;
-    let normalizedOverlay: VCDataPoint[] = [];
+    let normalizedOverlay: RawOrBucket<O>[] = [];
     let overlayFactor = 1.0;
     if (this.props.overlay) {
       this.registerEvents(events, overlayIdx, overlayName, overlayName);
@@ -86,7 +82,7 @@ class ChartWithLegend extends React.Component<Props, State> {
       if (overlayMax !== 0) {
         overlayFactor = mainMax / overlayMax;
       }
-      if (this.props.unit === this.props.overlay.info.unit && overlayFactor > 0.5 && overlayFactor < 2) {
+      if (this.props.unit === this.props.overlay.info.lineInfo.unit && overlayFactor > 0.5 && overlayFactor < 2) {
         // Looks like it's fine to re-use the existing axis
         useSecondAxis = false;
         overlayFactor = 1.0;
@@ -94,52 +90,11 @@ class ChartWithLegend extends React.Component<Props, State> {
       normalizedOverlay = this.normalizeOverlay(overlayFactor);
       if (this.props.overlay.info.buckets) {
         // Transform to bucketed stats
-        const model = {
-          name: this.props.overlay.info.title,
-          unit: this.props.overlay.info.unit,
-          color: this.props.overlay.info.color,
-          symbol: this.props.overlay.info.symbol,
-          scaleFactor: overlayFactor
-        };
-        normalizedOverlay = toBuckets(this.props.overlay.info.buckets, normalizedOverlay, model, this.props.timeWindow);
+        const model: O = { ...this.props.overlay.info.lineInfo, scaleFactor: overlayFactor };
+        normalizedOverlay = toBuckets(this.props.overlay.info.buckets, normalizedOverlay as (VCDataPoint & O)[], model, this.props.timeWindow);
       }
     }
-    const dataEvents: any[] = [];
-    let onClick: ((event: any) => void) | undefined = undefined;
-    if (this.props.onClick) {
-      onClick = (event: any) => {
-        // We need to get coordinates relative to the SVG
-        const svg = event.target.viewportElement;
-        const pt = svg.createSVGPoint();
-        pt.x = event.clientX;
-        pt.y = event.clientY;
-        const clicked = pt.matrixTransform(svg.getScreenCTM().inverse());
-        let flatDP: VCDataPoint[] = this.props.data.flatMap<VCDataPoint>(line => line.datapoints);
-        if (showOverlay) {
-          flatDP = flatDP.concat(normalizedOverlay);
-        }
-        const closest = findClosestDatapoint(
-          flatDP,
-          clicked.x - padding.left,
-          clicked.y - padding.top,
-          this.state.width - padding.left - padding.right,
-          height - padding.top - padding.bottom);
-        if (closest) {
-          this.props.onClick!(closest);
-        }
-      };
-
-      dataEvents.push({
-        target: 'data',
-        eventHandlers: {
-          onClick: event => {
-            onClick!(event);
-            return [];
-          }
-        }
-      });
-    }
-
+    const { dataEvents, onClick } = this.registerClickEvents(padding, height, showOverlay ? normalizedOverlay : undefined);
     return (
       <div ref={this.containerRef}>
         <Chart
@@ -161,10 +116,10 @@ class ChartWithLegend extends React.Component<Props, State> {
                 data={normalizedOverlay}
                 style={{
                   data: this.props.overlay!.info.dataStyle,
-                  min: { stroke: this.props.overlay!.info.color, strokeWidth: 2 },
-                  max: { stroke: this.props.overlay!.info.color, strokeWidth: 2 },
-                  q1: { fill: this.props.overlay!.info.color },
-                  q3: { fill: this.props.overlay!.info.color },
+                  min: { stroke: this.props.overlay!.info.lineInfo.color, strokeWidth: 2 },
+                  max: { stroke: this.props.overlay!.info.lineInfo.color, strokeWidth: 2 },
+                  q1: { fill: this.props.overlay!.info.lineInfo.color },
+                  q3: { fill: this.props.overlay!.info.lineInfo.color },
                   median: { stroke: 'white', strokeWidth: 2 }
                 }}
                 events={dataEvents}
@@ -205,8 +160,8 @@ class ChartWithLegend extends React.Component<Props, State> {
               style={{
                 axisLabel: { padding: -25 }
               }}
-              tickFormat={t => getFormatter(d3Format, this.props.overlay ? this.props.overlay.info.unit : '')(t / overlayFactor)}
-              label={this.props.overlay!.info.title}
+              tickFormat={t => getFormatter(d3Format, this.props.overlay?.info.lineInfo.unit || '')(t / overlayFactor)}
+              label={this.props.overlay!.info.lineInfo.name}
             />
           )}
           <VictoryLegend
@@ -226,6 +181,12 @@ class ChartWithLegend extends React.Component<Props, State> {
       </div>
     );
   }
+
+  private handleResize = () => {
+    if (this.containerRef && this.containerRef.current) {
+      this.setState({ width: this.containerRef.current.clientWidth });
+    }
+  };
 
   private buildLegendData(): LegendItem[] {
     const items = this.props.data.map(s => {
@@ -265,7 +226,49 @@ class ChartWithLegend extends React.Component<Props, State> {
     });
   }
 
-  private scaledAxisInfo(data: VCLines) {
+  private registerClickEvents(padding: Padding, height: number, normalizedOverlay?: RawOrBucket<O>[]) {
+    const dataEvents: VCEvent[] = [];
+    let onClick: ((event: MouseEvent) => void) | undefined = undefined;
+    if (this.props.onClick) {
+      onClick = (event: MouseEvent) => {
+        // We need to get coordinates relative to the SVG
+        const svg = (event.target as SVGElement).viewportElement as SVGSVGElement;
+        if (!svg) {
+          return;
+        }
+        const pt = svg.createSVGPoint();
+        pt.x = event.clientX;
+        pt.y = event.clientY;
+        const clicked = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+        let flatDP: RawOrBucket<LineInfo>[] = this.props.data.flatMap<RawOrBucket<LineInfo>>(line => line.datapoints);
+        if (normalizedOverlay) {
+          flatDP = flatDP.concat(normalizedOverlay);
+        }
+        const closest = findClosestDatapoint(
+          flatDP,
+          clicked.x - padding.left,
+          clicked.y - padding.top,
+          this.state.width - padding.left - padding.right,
+          height - padding.top - padding.bottom);
+        if (closest) {
+          this.props.onClick!(closest as RawOrBucket<O>);
+        }
+      };
+
+      dataEvents.push({
+        target: 'data',
+        eventHandlers: {
+          onClick: event => {
+            onClick!(event);
+            return [];
+          }
+        }
+      });
+    }
+    return { dataEvents: dataEvents, onClick: onClick };
+  }
+
+  private scaledAxisInfo(data: VCLines<VCDataPoint & T>) {
     const ticks = Math.max(...(data.map(s => s.datapoints.length)));
     if (this.state.width < 500) {
       return {
@@ -284,7 +287,7 @@ class ChartWithLegend extends React.Component<Props, State> {
     };
   }
 
-  private normalizeOverlay(factor: number): VCDataPoint[] {
+  private normalizeOverlay(factor: number): (VCDataPoint & O)[] {
     // All data is relative to the first Y-axis, even if a second one is in use
     // To make it appear as relative to the second axis, we need to normalize it, ie. apply the same scale factor that exists between the two axis
     // This scale factor is stored in every datapoint so that it can be "reverted" when we need to retrieve the original value, e.g. in tooltips
