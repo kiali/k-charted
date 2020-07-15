@@ -47,7 +47,7 @@ func TestGetDashboard(t *testing.T) {
 			"APP": "my-app",
 		},
 		AdditionalLabels: []model.Aggregation{
-			model.Aggregation{
+			{
 				Label:       "version",
 				DisplayName: "Version",
 			},
@@ -229,10 +229,10 @@ func fakeDashboard(id string) *v1alpha1.MonitoringDashboard {
 			Runtime:    "Runtime " + id,
 			DiscoverOn: "my_metric_" + id + "_1",
 			Items: []v1alpha1.MonitoringDashboardItem{
-				v1alpha1.MonitoringDashboardItem{
+				{
 					Chart: kmock.FakeChart(id+"_1", "rate"),
 				},
-				v1alpha1.MonitoringDashboardItem{
+				{
 					Chart: kmock.FakeChart(id+"_2", "histogram"),
 				},
 			},

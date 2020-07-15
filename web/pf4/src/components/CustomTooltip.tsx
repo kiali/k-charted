@@ -15,7 +15,7 @@ export const CustomLabel = (props: any & { textWidth: number }) => {
   const startY = 8 + props.y - (nbTexts * dy) / 2;
   return (
     <>
-      {props.activePoints && props.activePoints.filter(pt => pt.color)
+      {props.activePoints && props.activePoints.filter(pt => pt.color && !pt.hideLabel)
         .map((pt, idx) => {
           const symbol = pt.symbol || 'square';
           return (

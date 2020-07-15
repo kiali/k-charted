@@ -1,7 +1,7 @@
 import { Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
 import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend, RichDataPoint, LineInfo, RawOrBucket, BucketDataPoint } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
-import { ChartModel } from '../../../common/types/Dashboards';
+import { ChartModel, XAxisType } from '../../../common/types/Dashboards';
 import { Overlay, OverlayInfo } from '../types/Overlay';
 
 export const toVCDatapoints = (dps: Datapoint[], name: string): VCDataPoint[] => {
@@ -15,6 +15,20 @@ export const toVCDatapoints = (dps: Datapoint[], name: string): VCDataPoint[] =>
     .filter(dp => !isNaN(dp.y));
 };
 
+export const toVCSinglePoint = (dps: Datapoint[], name: string): VCDataPoint[] => {
+  const last = dps.filter(dp => !isNaN(dp[1]))
+    .reduce((p, c) => c[0] > p[0] ? c : p);
+  if (last) {
+    return [{
+      name: name,
+      time: new Date(last[0] * 1000),
+      x: 0, // placeholder
+      y: Number(last[1]),
+    } as VCDataPoint];
+  }
+  return [];
+};
+
 export const toVCLine = <T extends LineInfo>(dps: VCDataPoint[], lineInfo: T): VCLine<VCDataPoint & T> => {
   const datapoints: (VCDataPoint & T)[] = dps.map(dp => ({ ...lineInfo, ...dp }));
   const legendItem: LegendItem = makeLegend(lineInfo.name, lineInfo.color, lineInfo.symbol);
@@ -26,11 +40,12 @@ export const toVCLine = <T extends LineInfo>(dps: VCDataPoint[], lineInfo: T): V
 };
 
 let colorsIdx = 0;
-const toVCLines = (ts: NamedTimeSeries[], unit: string, colors: string[]): VCLines<RichDataPoint> => {
+const toVCLines = (ts: NamedTimeSeries[], unit: string, colors: string[], xAxis: XAxisType): VCLines<RichDataPoint> => {
   return ts.map(line => {
     const color = colors[colorsIdx % colors.length];
     colorsIdx++;
-    return toVCLine(toVCDatapoints(line.values, line.name), { name: line.name, unit: unit, color: color });
+    const dps = xAxis === 'time' ? toVCDatapoints(line.values, line.name) : toVCSinglePoint(line.values, line.name);
+    return toVCLine(dps, { name: line.name, unit: unit, color: color });
   });
 };
 
@@ -38,7 +53,7 @@ export const getDataSupplier = (chart: ChartModel, labels: LabelsInfo, colors: s
   return () => {
     colorsIdx = 0;
     const filtered = filterAndNameMetric(chart.metrics, labels);
-    return toVCLines(filtered, chart.unit, colors);
+    return toVCLines(filtered, chart.unit, colors, chart.xAxis || 'time');
   };
 };
 

@@ -33,6 +33,7 @@ type Chart struct {
 	Min            *int            `json:"min,omitempty"`
 	Max            *int            `json:"max,omitempty"`
 	Metrics        []*SampleStream `json:"metrics"`
+	XAxis          *string         `json:"xAxis"`
 	Error          string          `json:"error"`
 }
 
@@ -137,6 +138,7 @@ func ConvertChart(from v1alpha1.MonitoringDashboardChart) Chart {
 		Min:            from.Min,
 		Max:            from.Max,
 		Metrics:        []*SampleStream{},
+		XAxis:          from.XAxis,
 	}
 }
 
