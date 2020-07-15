@@ -150,21 +150,14 @@ make pf4
 
 ## Development setup (e.g. with Kiali)
 
-One solution to easily work and test with Kiali is to setup Glide mirroring, and npm linking.
+One solution to easily work and test with Kiali is to use [go mod replace directive](https://github.com/golang/go/wiki/Modules#when-should-i-use-the-replace-directive), and npm linking.
 
-First, commit your changes in k-charted and update `glide.yaml` in Kiali with the commit SHA.
-Then, assuming the repos are located within your $GOPATH, run:
+Assuming the repos are located within your $GOPATH (but that's not mandatory, just adapt the instructions below), run:
 
 ```bash
 cd ${GOPATH}/src/github.com/kiali/kiali
-glide mirror set https://github.com/kiali/k-charted file://${GOPATH}/src/github.com/kiali/k-charted
-
-# Edit Kiali glide.yaml to point k-charted to your commit SHA
-# Then, update your dependencies. In Kiali:
-make dep-update
+go mod edit -replace github.com/kiali/k-charted=../k-charted
 ```
-
-!! Do not commit the vendor directory of Kiali with mirror setup !!
 
 Similarly, you can use `yarn link` for the web UI side. Assuming your kiali-ui is in `/work/kiali-ui`:
 
@@ -176,11 +169,11 @@ cd /work/kiali-ui
 yarn link @kiali/k-charted-pf4
 ```
 
-After testing, you should remove the mirror and link:
+After testing, you should remove the link:
 
 ```bash
 cd ${GOPATH}/src/github.com/kiali/kiali
-glide mirror remove https://github.com/kiali/k-charted
+go mod edit -dropreplace github.com/kiali/k-charted
 
 cd /work/kiali-ui
 yarn unlink @kiali/k-charted-pf4
