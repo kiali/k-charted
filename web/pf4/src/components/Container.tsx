@@ -34,7 +34,7 @@ export const newBrushVoronoiContainer = (onClick?: (event: MouseEvent) => void, 
       }
       return formatValue(obj.datum.name, obj.datum, obj.datum.y);
     },
-    labelComponent: <CustomTooltip onClick={onClick} />,
+    labelComponent: <CustomTooltip showTime={true} onClick={onClick} />,
     // We blacklist "parent" as a workaround to avoid the VictoryVoronoiContainer crashing.
     // See https://github.com/FormidableLabs/victory/issues/1355
     voronoiBlacklist: ['parent']
