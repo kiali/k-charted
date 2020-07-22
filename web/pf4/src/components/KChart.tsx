@@ -33,6 +33,43 @@ type State = {
   collapsed: boolean
 };
 
+type ChartTypeData = {
+  fill: boolean,
+  stroke: boolean,
+  groupOffset: number,
+  seriesComponent: React.ReactElement,
+  sizeRatio: number
+};
+
+const lineInfo: ChartTypeData = {
+  fill: false,
+  stroke: true,
+  groupOffset: 0,
+  seriesComponent: <ChartLine/>,
+  sizeRatio: 1.0
+};
+const areaInfo: ChartTypeData = {
+  fill: true,
+  stroke: false,
+  groupOffset: 0,
+  seriesComponent: <ChartArea/>,
+  sizeRatio: 1.0
+}
+const barInfo: ChartTypeData = {
+  fill: true,
+  stroke: false,
+  groupOffset: 7,
+  seriesComponent: <ChartBar/>,
+  sizeRatio: 1/6
+};
+const scatterInfo: ChartTypeData = {
+  fill: true,
+  stroke: false,
+  groupOffset: 0,
+  seriesComponent: <ChartScatter/>,
+  sizeRatio: 1/30
+};
+
 class KChart<T extends LineInfo> extends React.Component<KChartProps<T>, State> {
   constructor(props: KChartProps<T>) {
     super(props);
@@ -57,28 +94,29 @@ class KChart<T extends LineInfo> extends React.Component<KChartProps<T>, State> 
     );
   }
 
-  renderChart() {
+  private determineChartType() {
+    if (this.props.chart.chartType === undefined) {
+      return this.props.chart.xAxis === 'series' ? barInfo : lineInfo;
+    }
+    const chartType = this.props.chart.chartType;
+    switch (chartType) {
+      case 'area':
+        return areaInfo;
+      case 'bar':
+        return barInfo;
+      case 'scatter':
+        return scatterInfo;
+      case 'line':
+      default:
+        return lineInfo;
+    }
+  }
+
+  private renderChart() {
     if (this.state.collapsed) {
       return undefined;
     }
-    let fill = false;
-    let stroke = true;
-    let seriesComponent = (<ChartLine/>);
-    if (this.props.chart.chartType === 'area') {
-      fill = true;
-      stroke = false;
-      seriesComponent = (<ChartArea/>);
-    } else if (this.props.chart.chartType === 'bar') {
-      fill = true;
-      stroke = false;
-      seriesComponent = (<ChartBar/>);
-    } else if (this.props.chart.chartType === 'scatter') {
-      fill = true;
-      stroke = false;
-      seriesComponent = (<ChartScatter/>);
-    }
-
-    const groupOffset = this.props.chart.chartType === 'bar' ? 7 : 0;
+    const typeData = this.determineChartType();
     const minDomain = this.props.chart.min === undefined ? undefined : { y: this.props.chart.min };
     const maxDomain = this.props.chart.max === undefined ? undefined : { y: this.props.chart.max };
 
@@ -93,16 +131,18 @@ class KChart<T extends LineInfo> extends React.Component<KChartProps<T>, State> 
         )}
         <ChartWithLegend
           data={this.props.data}
-          seriesComponent={seriesComponent}
-          fill={fill}
-          stroke={stroke}
-          groupOffset={groupOffset}
+          seriesComponent={typeData.seriesComponent}
+          fill={typeData.fill}
+          stroke={typeData.stroke}
+          groupOffset={typeData.groupOffset}
+          sizeRatio={typeData.sizeRatio}
           overlay={this.props.overlay}
           unit={this.props.chart.unit}
           moreChartProps={{ minDomain: minDomain, maxDomain: maxDomain }}
           onClick={this.props.onClick}
           brushHandlers={this.props.brushHandlers}
           timeWindow={this.props.timeWindow}
+          xAxis={this.props.chart.xAxis}
         />
       </>
     );

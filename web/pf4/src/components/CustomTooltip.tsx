@@ -20,7 +20,7 @@ export const CustomLabel = (props: any & { head?: string, text: string[], textWi
   const startY = yMargin + props.y - (textsWithHead.length * dy) / 2 + headSize;
   return (
     <>
-      {props.activePoints && props.activePoints.filter(pt => pt.color)
+      {props.activePoints && props.activePoints.filter(pt => pt.color && !pt.hideLabel)
         .map((pt, idx) => {
           const symbol = pt.symbol || 'square';
           return (

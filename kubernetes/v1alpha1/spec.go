@@ -63,6 +63,7 @@ type MonitoringDashboardChart struct {
 	DataType       string                           `json:"dataType"`   // DataType is either "raw", "rate" or "histogram"
 	Aggregator     string                           `json:"aggregator"` // Aggregator can be set for raw data. Ex: "sum", "avg". See https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators
 	Aggregations   []MonitoringDashboardAggregation `json:"aggregations"`
+	XAxis          *string                          `json:"xAxis"` // "time" (default) or "series"
 }
 
 type MonitoringDashboardMetric struct {
@@ -93,7 +94,7 @@ type MonitoringDashboardExternalLinkVariables struct {
 func (in *MonitoringDashboardChart) GetMetrics() []MonitoringDashboardMetric {
 	if len(in.Metrics) == 0 {
 		return []MonitoringDashboardMetric{
-			MonitoringDashboardMetric{
+			{
 				MetricName:  in.MetricName,
 				DisplayName: in.Name,
 			},

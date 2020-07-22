@@ -6,6 +6,7 @@ import { empty, error, generateRandomMetricChart, generateRandomHistogramChart, 
 
 import '@patternfly/react-core/dist/styles/base.css';
 import { LineInfo } from '../types/VictoryChartInfo';
+import { ChartModel } from '..';
 
 const metric = generateRandomMetricChart('Random metric chart', ['dogs', 'cats', 'birds'], 12, 'kchart-seed');
 const histogram = generateRandomHistogramChart('Random histogram chart', 12, 'kchart-histo-seed');
@@ -112,5 +113,15 @@ storiesOf('PF4 KChart', module)
   .add('start collapsed', () => {
     reset();
     const chart = { ...metric, startCollapsed: true };
-    return <KChart {...defaultProps} chart={chart} data={getDataSupplier(metric, emptyLabels, colors)!()} />;
+    return <KChart {...defaultProps} chart={chart} data={getDataSupplier(chart, emptyLabels, colors)!()} />;
+  })
+  .add('scatter with x-axis as series', () => {
+    reset();
+    const chart: ChartModel = { ...metric, chartType: 'scatter', xAxis: 'series' };
+    return <KChart {...defaultProps} chart={chart} data={getDataSupplier(chart, emptyLabels, colors)!()} />;
+  })
+  .add('bar with x-axis as series', () => {
+    reset();
+    const chart: ChartModel = { ...metric, chartType: 'bar', xAxis: 'series' };
+    return <KChart {...defaultProps} chart={chart} data={getDataSupplier(chart, emptyLabels, colors)!()} />;
   });

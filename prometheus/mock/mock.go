@@ -36,7 +36,7 @@ func FakeCounter(value int) prometheus.Metric {
 		Matrix: model.Matrix{
 			&model.SampleStream{
 				Metric: model.Metric{},
-				Values: []model.SamplePair{model.SamplePair{Timestamp: 0, Value: model.SampleValue(value)}},
+				Values: []model.SamplePair{{Timestamp: 0, Value: model.SampleValue(value)}},
 			},
 		},
 	}

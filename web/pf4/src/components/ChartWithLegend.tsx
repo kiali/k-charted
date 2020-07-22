@@ -9,20 +9,23 @@ import { Overlay } from '../types/Overlay';
 import { newBrushVoronoiContainer, BrushHandlers } from './Container';
 import { buildLegendInfo, findClosestDatapoint, toBuckets } from '../utils/victoryChartsUtils';
 import { VCEvent, addLegendEvent } from '../utils/events';
+import { XAxisType } from '../../../common/types/Dashboards';
 
 type Props<T extends RichDataPoint, O extends LineInfo> = {
   chartHeight?: number;
   data: VCLines<T & VCDataPoint>;
+  seriesComponent: React.ReactElement;
+  stroke?: boolean;
   fill?: boolean;
   groupOffset?: number;
+  sizeRatio?: number;
   moreChartProps?: ChartProps;
   onClick?: (datum: RawOrBucket<O>) => void;
   brushHandlers?: BrushHandlers;
   overlay?: Overlay<O>;
-  seriesComponent: React.ReactElement;
-  stroke?: boolean;
   timeWindow?: [Date, Date];
   unit: string;
+  xAxis?: XAxisType;
 };
 
 type State = {
@@ -56,8 +59,6 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
 
   render() {
     const scaleInfo = this.scaledAxisInfo(this.props.data);
-    const groupOffset = this.props.groupOffset || 0;
-
     const legendData = this.buildLegendData();
     const legend = buildLegendInfo(legendData, this.state.width);
     const overlayIdx = this.props.data.length;
@@ -103,9 +104,9 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
           padding={padding}
           events={events}
           containerComponent={newBrushVoronoiContainer(onClick, this.props.brushHandlers)}
-          scale={{x: 'time'}}
+          scale={{x: this.props.xAxis === 'series' ? 'linear' : 'time'}}
           // Hack: 1 pxl on Y domain padding to prevent harsh clipping (https://github.com/kiali/kiali/issues/2069)
-          domainPadding={{y: 1}}
+          domainPadding={{y: 1, x: this.props.xAxis === 'series' ? 50 : undefined}}
           {...this.props.moreChartProps}
         >
           {showOverlay && (
@@ -128,25 +129,19 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
               <ChartScatter key="overlay" name={overlayName} data={normalizedOverlay} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
             )
           )}
-          <ChartGroup offset={groupOffset}>
-            {this.props.data.map((serie, idx) => {
-              if (this.state.hiddenSeries.has(serie.legendItem.name)) {
-                return undefined;
-              }
-              return React.cloneElement(this.props.seriesComponent, {
-                key: 'serie-' + idx,
-                name: 'serie-' + idx,
-                data: serie.datapoints,
-                events: dataEvents,
-                style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }}
-              });
-            })}
-          </ChartGroup>
-          <ChartAxis
-            tickCount={scaleInfo.count}
-            style={{ tickLabels: {fontSize: 12, padding: 2} }}
-            domain={this.props.timeWindow}
-          />
+          {this.props.xAxis === 'series' ? this.renderCategories(dataEvents) : this.renderTimeSeries(dataEvents)}
+          {this.props.xAxis === 'series' ? (
+            <ChartAxis
+              style={{ tickLabels: {fontSize: 12, padding: 2} }}
+              tickValues={this.props.data.filter(s => !this.state.hiddenSeries.has(s.legendItem.name)).map(s => s.legendItem.name)}
+            />
+          ) : (
+            <ChartAxis
+              tickCount={scaleInfo.count}
+              style={{ tickLabels: {fontSize: 12, padding: 2} }}
+              domain={this.props.timeWindow}
+            />
+          )}
           <ChartAxis
             tickLabelComponent={<VictoryPortal><VictoryLabel/></VictoryPortal>}
             dependentAxis={true}
@@ -180,6 +175,45 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
         </Chart>
       </div>
     );
+  }
+
+  private renderTimeSeries = (dataEvents: VCEvent[]) => {
+    const groupOffset = this.props.groupOffset || 0;
+    return (
+      <ChartGroup offset={groupOffset}>
+        {this.props.data.map((serie, idx) => {
+          if (this.state.hiddenSeries.has(serie.legendItem.name)) {
+            return undefined;
+          }
+          return React.cloneElement(this.props.seriesComponent, {
+            key: 'serie-' + idx,
+            name: 'serie-' + idx,
+            data: serie.datapoints,
+            events: dataEvents,
+            style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }},
+          });
+        })}
+      </ChartGroup>
+    );    
+  }
+
+  private renderCategories = (dataEvents: VCEvent[]) => {
+    let domainX = 1;
+    const nbSeries = this.props.data.length - this.state.hiddenSeries.size;
+    const size = (this.props.sizeRatio || 1) * this.state.width / Math.max(nbSeries, 1);
+    return this.props.data.map((serie, idx) => {
+      if (this.state.hiddenSeries.has(serie.legendItem.name)) {
+        return undefined;
+      }
+      return React.cloneElement(this.props.seriesComponent, {
+        key: 'serie-' + idx,
+        name: 'serie-' + idx,
+        data: serie.datapoints.map(d => ({ size: size, ...d, x: domainX++ })),
+        events: dataEvents,
+        style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }},
+        barWidth: size
+      });
+    });
   }
 
   private handleResize = () => {

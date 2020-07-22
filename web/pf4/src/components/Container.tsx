@@ -25,6 +25,9 @@ const formatValue = (label: string, datum: RichDataPoint, value: number) => {
 export const newBrushVoronoiContainer = (onClick?: (event: MouseEvent) => void, handlers?: BrushHandlers) => {
   const voronoiProps = {
     labels: obj => {
+      if (obj.datum.hideLabel) {
+        return undefined;
+      }
       if (obj.datum._median !== undefined) {
         // Buckets display => datapoint is expected to have _median, _min, _max, _q1, _q3 stats
         const avg = obj.datum.y.reduce((s, y) => s + y, 0) / obj.datum.y.length;

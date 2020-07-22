@@ -27,6 +27,8 @@ export const generateRandomDashboard = (title: string, seed?: string): Dashboard
       generateRandomMetricChart('Best animal++', ['dogs', 'cats', 'birds', 'stunning animal with very very long name that you\'ve never about', 'mermaids', 'escherichia coli', 'wohlfahrtiimonas', 'Chuck Norris'], 4),
       generateRandomMetricChart('Best fruit++', ['apples', 'oranges', 'bananas', 'peaches', 'peers', 'cherries', 'leetchies', 'pineapple'], 4),
       generateRandomScatterChart('Best traces++', ['apples', 'oranges', 'bananas', 'peaches', 'peers', 'cherries', 'leetchies', 'pineapple'], 4),
+      { ...generateRandomMetricChart('With x-axis as series', ['dogs', 'cats', 'birds'], 6), xAxis: 'series' },
+      { ...generateRandomMetricChart('Bars with x-axis as series', ['apples', 'oranges', 'bananas', 'peaches', 'peers', 'cherries', 'leetchies', 'pineapple'], 6), xAxis: 'series', chartType: 'bar' },
     ],
     aggregations: [],
     externalLinks: []
