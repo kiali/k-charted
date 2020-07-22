@@ -96,6 +96,7 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
       }
     }
     const { dataEvents, onClick } = this.registerClickEvents(padding, height, showOverlay ? normalizedOverlay : undefined);
+    const filteredData = this.props.data.filter(s => !this.state.hiddenSeries.has(s.legendItem.name));
     return (
       <div ref={this.containerRef}>
         <Chart
@@ -132,8 +133,9 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
           {this.props.xAxis === 'series' ? this.renderCategories(dataEvents) : this.renderTimeSeries(dataEvents)}
           {this.props.xAxis === 'series' ? (
             <ChartAxis
+              domain={[0, filteredData.length + 1]}
               style={{ tickLabels: {fontSize: 12, padding: 2} }}
-              tickValues={this.props.data.filter(s => !this.state.hiddenSeries.has(s.legendItem.name)).map(s => s.legendItem.name)}
+              tickValues={filteredData.map(s => s.legendItem.name)}
             />
           ) : (
             <ChartAxis
