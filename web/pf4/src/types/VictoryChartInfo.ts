@@ -13,6 +13,8 @@ export type VCDataPoint = {
   style?: Style
 };
 
+export type VCSinglePoint = VCDataPoint & { time: Date }
+
 export type LineInfo = {
   name: string,
   color: string,

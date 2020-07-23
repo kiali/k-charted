@@ -1,7 +1,7 @@
 import { getDataSupplier, findClosestDatapoint, toBuckets } from '../victoryChartsUtils';
-import { empty, histogram, metric, metricWithLabels, emptyLabels, labelsWithPrettifier } from '../../types/__mocks__/Charts.mock';
+import { genLabels, empty, histogram, metric, metricWithLabels, emptyLabels, labelsWithPrettifier } from '../../types/__mocks__/Charts.mock';
 import { ChartModel } from '../..';
-import { RawOrBucket, LineInfo } from '../../types/VictoryChartInfo';
+import { RawOrBucket, LineInfo, VCSinglePoint, VCDataPoint } from '../../types/VictoryChartInfo';
 
 const t0 = new Date('2019-05-02T13:00:00.000Z');
 const t1 = new Date('2019-05-02T13:01:00.000Z');
@@ -125,5 +125,64 @@ describe('Victory Charts Utils', () => {
     expect(buckets[1].y).toHaveLength(1);
     expect(buckets[2].x).toEqual(19500);
     expect(buckets[2].y).toHaveLength(4);
+  });
+
+  it('should order timeless series by timestamp', () => {
+    const chart: ChartModel = {
+      name: 'Timeless',
+      unit: 'score',
+      spans: 6,
+      metrics: [{
+          values: [[1000, 5]],
+          labelSet: genLabels('Timeless chart', 'v1')
+        }, {
+          values: [[5000, 10]],
+          labelSet: genLabels('Timeless chart', 'v10')
+        }, {
+          values: [[2000, 8]],
+          labelSet: genLabels('Timeless chart', 'v2')
+        }, {
+          values: [],
+          labelSet: genLabels('Timeless chart', 'err')
+        }
+      ],
+      startCollapsed: false,
+      xAxis: 'series'
+    };
+    const res = getDataSupplier(chart, emptyLabels, colors)!();
+    expect(res).toHaveLength(4);
+    expect((res[0].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.time)).toEqual([new Date(1000*1000)]);
+    expect((res[0].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.name)).toEqual(['v1']);
+    expect((res[1].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.time)).toEqual([new Date(2000*1000)]);
+    expect((res[1].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.name)).toEqual(['v2']);
+    expect((res[2].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.time)).toEqual([new Date(5000*1000)]);
+    expect((res[2].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.name)).toEqual(['v10']);
+    expect(res[3].datapoints).toHaveLength(0);
+  });
+
+  it('should pick last datapoint for timeless series', () => {
+    const chart: ChartModel = {
+      name: 'Timeless',
+      unit: 'score',
+      spans: 6,
+      metrics: [{
+          values: [[1000, 5], [2000, 5], [3000, 5]],
+          labelSet: genLabels('Timeless chart', 'v1')
+        }, {
+          values: [[0, 100], [1000, 99], [2000, 98], [3000, 97], [4000, 96]],
+          labelSet: genLabels('Timeless chart', 'v2')
+        }
+      ],
+      startCollapsed: false,
+      xAxis: 'series'
+    };
+    const res = getDataSupplier(chart, emptyLabels, colors)!();
+    expect(res).toHaveLength(2);
+    expect((res[0].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.time)).toEqual([new Date(3000*1000)]);
+    expect((res[0].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.name)).toEqual(['v1']);
+    expect((res[0].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.y)).toEqual([5]);
+    expect((res[1].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.time)).toEqual([new Date(4000*1000)]);
+    expect((res[1].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.name)).toEqual(['v2']);
+    expect((res[1].datapoints as VCDataPoint[] as VCSinglePoint[]).map(s => s.y)).toEqual([96]);
   });
 });
