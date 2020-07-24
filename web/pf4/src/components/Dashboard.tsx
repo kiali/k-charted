@@ -72,7 +72,7 @@ export class Dashboard<T extends LineInfo> extends React.Component<Props<T>, Sta
         data={dataSupplier()}
         onToggleMaximized={() => this.onToggleMaximized(chart.name)}
         isMaximized={this.state.maximizedChart !== undefined}
-        overlay={this.props.overlay}
+        overlay={chart.xAxis === 'series' ? undefined : this.props.overlay}
         onClick={onClick}
         brushHandlers={this.props.brushHandlers}
         timeWindow={this.props.timeWindow}
