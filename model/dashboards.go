@@ -37,6 +37,12 @@ type Chart struct {
 	Error          string          `json:"error"`
 }
 
+type ConversionParams struct {
+	Scale           float64
+	SortLabel       string
+	RemoveSortLabel bool
+}
+
 // BuildLabelsMap initiates a labels map out of a given metric name and optionally histogram stat
 // Exported for external usage (Kiali)
 func BuildLabelsMap(name, stat string) map[string]string {
@@ -49,7 +55,7 @@ func BuildLabelsMap(name, stat string) map[string]string {
 	return labels
 }
 
-func (chart *Chart) FillHistogram(ref v1alpha1.MonitoringDashboardMetric, from prometheus.Histogram, scale float64) {
+func (chart *Chart) FillHistogram(ref v1alpha1.MonitoringDashboardMetric, from prometheus.Histogram, conversionParams ConversionParams) {
 	// Extract and sort keys for consistent ordering
 	stats := []string{}
 	for k := range from {
@@ -62,24 +68,31 @@ func (chart *Chart) FillHistogram(ref v1alpha1.MonitoringDashboardMetric, from p
 			chart.Error = fmt.Sprintf("error in metric %s/%s: %v", ref.MetricName, stat, promMetric.Err)
 			return
 		}
-		metric := ConvertMatrix(promMetric.Matrix, BuildLabelsMap(ref.DisplayName, stat), scale)
+		metric := ConvertMatrix(promMetric.Matrix, BuildLabelsMap(ref.DisplayName, stat), conversionParams)
 		chart.Metrics = append(chart.Metrics, metric...)
 	}
 }
 
-func (chart *Chart) FillMetric(ref v1alpha1.MonitoringDashboardMetric, from prometheus.Metric, scale float64) {
+func (chart *Chart) FillMetric(ref v1alpha1.MonitoringDashboardMetric, from prometheus.Metric, conversionParams ConversionParams) {
 	if from.Err != nil {
 		chart.Error = fmt.Sprintf("error in metric %s: %v", ref.MetricName, from.Err)
 		return
 	}
-	metric := ConvertMatrix(from.Matrix, BuildLabelsMap(ref.DisplayName, ""), scale)
+	metric := ConvertMatrix(from.Matrix, BuildLabelsMap(ref.DisplayName, ""), conversionParams)
 	chart.Metrics = append(chart.Metrics, metric...)
 }
 
-func ConvertMatrix(from pmod.Matrix, initialLabels map[string]string, scale float64) []*SampleStream {
+func ConvertMatrix(from pmod.Matrix, initialLabels map[string]string, conversionParams ConversionParams) []*SampleStream {
 	series := make([]*SampleStream, len(from))
+	if len(conversionParams.SortLabel) > 0 {
+		sort.Slice(from, func(i, j int) bool {
+			first := from[i].Metric[pmod.LabelName(conversionParams.SortLabel)]
+			second := from[j].Metric[pmod.LabelName(conversionParams.SortLabel)]
+			return first < second
+		})
+	}
 	for i, s := range from {
-		series[i] = convertSampleStream(s, initialLabels, scale)
+		series[i] = convertSampleStream(s, initialLabels, conversionParams)
 	}
 	return series
 }
@@ -89,17 +102,21 @@ type SampleStream struct {
 	Values   []SamplePair      `json:"values"`
 }
 
-func convertSampleStream(from *pmod.SampleStream, initialLabels map[string]string, scale float64) *SampleStream {
+func convertSampleStream(from *pmod.SampleStream, initialLabels map[string]string, conversionParams ConversionParams) *SampleStream {
 	labelSet := make(map[string]string, len(from.Metric)+len(initialLabels))
 	for k, v := range initialLabels {
 		labelSet[k] = v
 	}
 	for k, v := range from.Metric {
+		if conversionParams.SortLabel == string(k) && conversionParams.RemoveSortLabel {
+			// Do not keep sort label
+			continue
+		}
 		labelSet[string(k)] = string(v)
 	}
 	values := make([]SamplePair, len(from.Values))
 	for i, v := range from.Values {
-		values[i] = convertSamplePair(&v, scale)
+		values[i] = convertSamplePair(&v, conversionParams.Scale)
 	}
 	return &SampleStream{
 		LabelSet: labelSet,

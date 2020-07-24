@@ -63,7 +63,9 @@ type MonitoringDashboardChart struct {
 	DataType       string                           `json:"dataType"`   // DataType is either "raw", "rate" or "histogram"
 	Aggregator     string                           `json:"aggregator"` // Aggregator can be set for raw data. Ex: "sum", "avg". See https://prometheus.io/docs/prometheus/latest/querying/operators/#aggregation-operators
 	Aggregations   []MonitoringDashboardAggregation `json:"aggregations"`
-	XAxis          *string                          `json:"xAxis"` // "time" (default) or "series"
+	XAxis          *string                          `json:"xAxis"`       // "time" (default) or "series"
+	GroupLabels    []string                         `json:"groupLabels"` // Prometheus label to be used for grouping; Similar to Aggregations, except this grouping will be always turned on
+	SortLabel      string                           `json:"sortLabel"`   // Prometheus label to be used for sorting
 }
 
 type MonitoringDashboardMetric struct {
