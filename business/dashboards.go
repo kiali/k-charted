@@ -188,10 +188,11 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 	for i, item := range dashboard.Spec.Items {
 		go func(idx int, chart v1alpha1.MonitoringDashboardChart) {
 			defer wg.Done()
-			conversionParams := model.ConversionParams{Scale: 1.0, SortLabel: chart.SortLabel}
+			conversionParams := model.ConversionParams{Scale: 1.0, SortLabel: chart.SortLabel, SortLabelParseAs: chart.SortLabelParseAs}
 			if chart.UnitScale != 0.0 {
 				conversionParams.Scale = chart.UnitScale
 			}
+			// Group by labels is concat of what is defined in CR + what is passed as parameters
 			byLabels := append(chart.GroupLabels, params.ByLabels...)
 			if len(chart.SortLabel) > 0 {
 				// We also need to group by the label used for sorting, if not explicitly present
@@ -199,6 +200,7 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 				for _, lbl := range byLabels {
 					if lbl == chart.SortLabel {
 						present = true
+						break
 					}
 				}
 				if !present {

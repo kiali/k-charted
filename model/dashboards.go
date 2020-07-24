@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"sort"
+	"strconv"
 
 	pmod "github.com/prometheus/common/model"
 
@@ -38,9 +39,10 @@ type Chart struct {
 }
 
 type ConversionParams struct {
-	Scale           float64
-	SortLabel       string
-	RemoveSortLabel bool
+	Scale            float64
+	SortLabel        string
+	SortLabelParseAs string
+	RemoveSortLabel  bool
 }
 
 // BuildLabelsMap initiates a labels map out of a given metric name and optionally histogram stat
@@ -88,6 +90,12 @@ func ConvertMatrix(from pmod.Matrix, initialLabels map[string]string, conversion
 		sort.Slice(from, func(i, j int) bool {
 			first := from[i].Metric[pmod.LabelName(conversionParams.SortLabel)]
 			second := from[j].Metric[pmod.LabelName(conversionParams.SortLabel)]
+			if conversionParams.SortLabelParseAs == "int" {
+				// Note: in case of parsing error, 0 will be returned and used for sorting; error silently ignored.
+				iFirst, _ := strconv.Atoi(string(first))
+				iSecond, _ := strconv.Atoi(string(second))
+				return iFirst < iSecond
+			}
 			return first < second
 		})
 	}

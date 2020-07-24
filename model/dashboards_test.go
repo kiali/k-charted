@@ -300,3 +300,32 @@ func TestConvertMatrixWithLabelSortLabelNotFound(t *testing.T) {
 	assert.Equal("v10", chart.Metrics[2].LabelSet["key"])
 	assert.Equal(float64(3), chart.Metrics[2].Values[0].Value)
 }
+
+func TestConvertMatrixWithLabelSortAsInt(t *testing.T) {
+	assert := assert.New(t)
+	metric := prometheus.Metric{
+		Matrix: model.Matrix{
+			mock.FakeLabeledCounter("key", "1", 1),
+			mock.FakeLabeledCounter("key", "10", 2),
+			mock.FakeLabeledCounter("key", "2", 3),
+		},
+	}
+	chart := Chart{}
+	ref := v1alpha1.MonitoringDashboardMetric{MetricName: "foo", DisplayName: "Foo"}
+
+	chart.FillMetric(ref, metric, ConversionParams{Scale: 1.0, SortLabel: "key", SortLabelParseAs: "int"})
+	assert.Empty(chart.Error)
+	assert.Len(chart.Metrics, 3)
+	assert.Len(chart.Metrics[0].LabelSet, 2)
+	assert.Equal("Foo", chart.Metrics[0].LabelSet["__name__"])
+	assert.Equal("1", chart.Metrics[0].LabelSet["key"])
+	assert.Equal(float64(1), chart.Metrics[0].Values[0].Value)
+	assert.Len(chart.Metrics[1].LabelSet, 2)
+	assert.Equal("Foo", chart.Metrics[1].LabelSet["__name__"])
+	assert.Equal("2", chart.Metrics[1].LabelSet["key"])
+	assert.Equal(float64(3), chart.Metrics[1].Values[0].Value)
+	assert.Len(chart.Metrics[2].LabelSet, 2)
+	assert.Equal("Foo", chart.Metrics[2].LabelSet["__name__"])
+	assert.Equal("10", chart.Metrics[2].LabelSet["key"])
+	assert.Equal(float64(2), chart.Metrics[2].Values[0].Value)
+}
