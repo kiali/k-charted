@@ -154,7 +154,7 @@ class KChart<T extends LineInfo> extends React.Component<KChartProps<T>, State> 
 
   private renderEmpty() {
     return (
-      <EmptyState>
+      <EmptyState variant="full">
         <EmptyStateIcon icon={CubesIcon} />
         <EmptyStateBody>No data available</EmptyStateBody>
       </EmptyState>
@@ -163,7 +163,7 @@ class KChart<T extends LineInfo> extends React.Component<KChartProps<T>, State> 
 
   private renderError() {
     return (
-      <EmptyState>
+      <EmptyState variant="full">
         <EmptyStateIcon icon={() => (
           <ErrorCircleOIcon style={{color: '#cc0000'}} width={32} height={32} />
         )} />
