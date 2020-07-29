@@ -180,7 +180,6 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 		// Prevent null in json
 		aggLabels = []model.Aggregation{}
 	}
-	grouping := strings.Join(params.ByLabels, ",")
 
 	wg := sync.WaitGroup{}
 	wg.Add(len(dashboard.Spec.Items) + 1)
@@ -189,10 +188,29 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 	for i, item := range dashboard.Spec.Items {
 		go func(idx int, chart v1alpha1.MonitoringDashboardChart) {
 			defer wg.Done()
-			unitScale := 1.0
+			conversionParams := model.ConversionParams{Scale: 1.0, SortLabel: chart.SortLabel, SortLabelParseAs: chart.SortLabelParseAs}
 			if chart.UnitScale != 0.0 {
-				unitScale = chart.UnitScale
+				conversionParams.Scale = chart.UnitScale
 			}
+			// Group by labels is concat of what is defined in CR + what is passed as parameters
+			byLabels := append(chart.GroupLabels, params.ByLabels...)
+			if len(chart.SortLabel) > 0 {
+				// We also need to group by the label used for sorting, if not explicitly present
+				present := false
+				for _, lbl := range byLabels {
+					if lbl == chart.SortLabel {
+						present = true
+						break
+					}
+				}
+				if !present {
+					byLabels = append(byLabels, chart.SortLabel)
+					// Mark the sort label to not be kept during conversion
+					conversionParams.RemoveSortLabel = true
+				}
+			}
+			grouping := strings.Join(byLabels, ",")
+
 			filledCharts[idx] = model.ConvertChart(chart)
 			metrics := chart.GetMetrics()
 			for _, ref := range metrics {
@@ -202,13 +220,13 @@ func (in *DashboardsService) GetDashboard(params model.DashboardQuery, template 
 						aggregator = chart.Aggregator
 					}
 					metric := promClient.FetchRange(ref.MetricName, filters, grouping, aggregator, &params.MetricsQuery)
-					filledCharts[idx].FillMetric(ref, metric, unitScale)
+					filledCharts[idx].FillMetric(ref, metric, conversionParams)
 				} else if chart.DataType == v1alpha1.Rate {
 					metric := promClient.FetchRateRange(ref.MetricName, filters, grouping, &params.MetricsQuery)
-					filledCharts[idx].FillMetric(ref, metric, unitScale)
+					filledCharts[idx].FillMetric(ref, metric, conversionParams)
 				} else {
 					histo := promClient.FetchHistogramRange(ref.MetricName, filters, grouping, &params.MetricsQuery)
-					filledCharts[idx].FillHistogram(ref, histo, unitScale)
+					filledCharts[idx].FillHistogram(ref, histo, conversionParams)
 				}
 			}
 		}(i, item.Chart)

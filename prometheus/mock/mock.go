@@ -42,6 +42,13 @@ func FakeCounter(value int) prometheus.Metric {
 	}
 }
 
+func FakeLabeledCounter(labelKey, labelValue string, value int) *model.SampleStream {
+	return &model.SampleStream{
+		Metric: model.Metric{model.LabelName(labelKey): model.LabelValue(labelValue)},
+		Values: []model.SamplePair{{Timestamp: 0, Value: model.SampleValue(value)}},
+	}
+}
+
 func FakeHistogram(avg, p99 int) prometheus.Histogram {
 	return prometheus.Histogram{
 		"0.99": FakeCounter(p99),
