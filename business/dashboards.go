@@ -14,6 +14,8 @@ import (
 	"github.com/kiali/k-charted/prometheus"
 )
 
+const defaultNamespaceLabel = "namespace"
+
 // DashboardsService deals with fetching dashboards from k8s client
 type DashboardsService struct {
 	promClient prometheus.ClientInterface
@@ -390,7 +392,11 @@ func addDashboardToRuntimes(dashboard *v1alpha1.MonitoringDashboard, runtimes []
 }
 
 func (in *DashboardsService) buildLabels(namespace string, labelsFilters map[string]string) string {
-	labels := fmt.Sprintf(`{namespace="%s"`, namespace)
+	namespaceLabel := in.config.NamespaceLabel
+	if namespaceLabel == "" {
+		namespaceLabel = defaultNamespaceLabel
+	}
+	labels := fmt.Sprintf(`{%s="%s"`, namespaceLabel, namespace)
 	for k, v := range labelsFilters {
 		labels += fmt.Sprintf(`,%s="%s"`, k, v)
 	}

@@ -37,6 +37,7 @@ import (
 
 var cfg = kconf.Config{
   GlobalNamespace:  "default",
+  NamespaceLabel: "namespace",
   Prometheus: kxconf.PrometheusConfig{
     URL: "http://prometheus",
   },
@@ -68,6 +69,7 @@ import (
 
 var cfg = kconf.Config{
   GlobalNamespace:  "default",
+  NamespaceLabel: "namespace",
   Prometheus: kxconf.PrometheusConfig{
     URL: "http://prometheus",
   },
@@ -86,6 +88,8 @@ var logger = klog.LogAdapter{
 #### Config
 
 - **GlobalNamespace**: namespace that holds default dashboards. When a dashboard is looked for in a given namespace, when not found and if GlobalNamespace is defined, it will be searched then in that GlobalNamespace. Undefined by default.
+
+- **NamespaceLabel**: the name of the Prometheus label that holds namespace. `namespace` by default.
 
 - **Prometheus**: Prometheus configuration.
   - **URL**: URL of the Prometheus server, accessible from server-side.
