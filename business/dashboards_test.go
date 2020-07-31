@@ -20,7 +20,7 @@ import (
 func setupService() (*DashboardsService, *kmock.ClientMock, *pmock.PromClientMock) {
 	k8s := new(kmock.ClientMock)
 	prom := new(pmock.PromClientMock)
-	service := NewDashboardsService(config.Config{GlobalNamespace: "istio-system"}, log.LogAdapter{
+	service := NewDashboardsService(config.Config{GlobalNamespace: "istio-system", NamespaceLabel: "namespace"}, log.LogAdapter{
 		Errorf: func(s string, args ...interface{}) {
 			fmt.Printf(s+"\n", args...)
 		},

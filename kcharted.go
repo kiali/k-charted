@@ -10,5 +10,5 @@ import (
 
 func main() {
 	fmt.Printf("Hello, Charts")
-	business.NewDashboardsService(config.Config{GlobalNamespace: "istio-system"}, log.LogAdapter{})
+	business.NewDashboardsService(config.Config{GlobalNamespace: "istio-system", NamespaceLabel: "namespace"}, log.LogAdapter{})
 }
