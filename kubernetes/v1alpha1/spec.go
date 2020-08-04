@@ -75,8 +75,9 @@ type MonitoringDashboardMetric struct {
 }
 
 type MonitoringDashboardAggregation struct {
-	Label       string `json:"label"`
-	DisplayName string `json:"displayName"`
+	Label           string `json:"label"`
+	DisplayName     string `json:"displayName"`
+	SingleSelection bool   `json:"singleSelection"`
 }
 
 type MonitoringDashboardExternalLink struct {

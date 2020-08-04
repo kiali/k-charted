@@ -28,6 +28,7 @@ export interface ChartModel {
 export interface AggregationModel {
   label: PromLabel;
   displayName: LabelDisplayName;
+  singleSelection: boolean;
 }
 
 export interface ExternalLink {
