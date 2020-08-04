@@ -169,8 +169,9 @@ func ConvertChart(from v1alpha1.MonitoringDashboardChart) Chart {
 
 // Aggregation is the model representing label's allowed aggregation, transformed from aggregation in MonitoringDashboard k8s resource
 type Aggregation struct {
-	Label       string `json:"label"`
-	DisplayName string `json:"displayName"`
+	Label           string `json:"label"`
+	DisplayName     string `json:"displayName"`
+	SingleSelection bool   `json:"singleSelection"`
 }
 
 // ConvertAggregations converts a k8s aggregations (from MonitoringDashboard k8s resource) into this models aggregations
@@ -179,7 +180,7 @@ func ConvertAggregations(from v1alpha1.MonitoringDashboardSpec) []Aggregation {
 	uniqueAggs := make(map[string]Aggregation)
 	for _, item := range from.Items {
 		for _, agg := range item.Chart.Aggregations {
-			uniqueAggs[agg.DisplayName] = Aggregation{Label: agg.Label, DisplayName: agg.DisplayName}
+			uniqueAggs[agg.DisplayName] = Aggregation{Label: agg.Label, DisplayName: agg.DisplayName, SingleSelection: agg.SingleSelection}
 		}
 	}
 	aggs := []Aggregation{}
