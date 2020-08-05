@@ -136,6 +136,7 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
               domain={[0, filteredData.length + 1]}
               style={{ tickLabels: {fontSize: 12, padding: 2} }}
               tickValues={filteredData.map(s => s.legendItem.name)}
+              tickFormat={_ => ''}
             />
           ) : (
             <ChartAxis
