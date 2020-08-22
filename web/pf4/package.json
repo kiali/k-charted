@@ -18,6 +18,9 @@
     "victory-core": ">=34.0.0"
   },
   "resolutions": {
+    "dot-prop": "4.2.1",
+    "prismjs": "1.21.0",
+    "serialize-javascript": "3.1.0",
     "victory": "~34.0.1",
     "victory-core": "~34.0.0"
   },
@@ -34,15 +37,12 @@
     "@types/storybook__react": "~4.0.1",
     "awesome-typescript-loader": "~5.2.1",
     "babel-loader": "~8.0.5",
-    "dot-prop": "^4.2.1",
     "jest": "~24.7.1",
-    "prismjs": "^1.21.0",
     "react": "~16.8.6",
     "react-docgen-typescript-loader": "~3.1.0",
     "react-dom": "~16.8.6",
     "react-scripts": "3.3.1",
     "seedrandom": "~3.0.1",
-    "serialize-javascript": "^3.1.0",
     "ts-jest": "~24.0.2",
     "typescript": "~3.7.5",
     "typestyle": "~2.0.2",
