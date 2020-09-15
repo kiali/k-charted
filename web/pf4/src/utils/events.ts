@@ -30,7 +30,8 @@ type EventMutation = {
 export const addLegendEvent = (events: VCEvent[], item: EventItem): void => {
   const eventHandlers: EventHandlers = {};
   if (item.onClick) {
-    eventHandlers.onClick = () => {
+    eventHandlers.onClick = e => {
+      e.stopPropagation();
       return [
         {
           childName: [item.serieID],

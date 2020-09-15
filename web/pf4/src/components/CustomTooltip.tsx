@@ -51,24 +51,67 @@ const getHeader = (activePoints?: VCDataPoint[]): string | undefined => {
   return undefined;
 }
 
-export const CustomTooltip = (props: ChartTooltipProps & { showTime?: boolean, activePoints?: VCDataPoint[], onClick?: (event: MouseEvent) => void }) => {
-  const head = props.showTime ? getHeader(props.activePoints) : undefined;
-  let height = props.text.length * dy + 2 * yMargin;
-  if (head) {
-    height += headSize;
-  }
-  const texts = Array.isArray(props.text) ? props.text : [props.text]
-  const textWidth = Math.max(...texts.map(t => canvasContext.measureText(t).width));
-  const width = 50 + (head ? Math.max(textWidth, canvasContext.measureText(head).width) : textWidth);
-  return (
-    <ChartTooltip
-      {...props}
-      text={texts}
-      flyoutWidth={width}
-      flyoutHeight={height}
-      flyoutComponent={<Flyout style={{ stroke: 'none', fillOpacity: 0.6 }} />}
-      labelComponent={<CustomLabel head={head} textWidth={textWidth}/>} constrainToVisibleArea={true}
-      events={props.onClick ? { onClick: props.onClick } : undefined}
-    />
-  );
+type Props = ChartTooltipProps & {
+  showTime?: boolean,
+  activePoints?: VCDataPoint[],
+  onOpen?: (items: VCDataPoint[]) => void,
+  onClose?: () => void
 };
+
+type State = {
+  texts: string[],
+  head?: string,
+  textWidth: number,
+  width: number,
+  height: number
+}
+
+export class CustomTooltip extends React.Component<Props, State> {
+  static getDerivedStateFromProps(props: Props): State {
+    const head = props.showTime ? getHeader(props.activePoints) : undefined;
+    let height = props.text.length * dy + 2 * yMargin;
+    if (head) {
+      height += headSize;
+    }
+    const texts = Array.isArray(props.text) ? props.text : [props.text]
+    const textWidth = Math.max(...texts.map(t => canvasContext.measureText(t).width));
+    const width = 50 + (head ? Math.max(textWidth, canvasContext.measureText(head).width) : textWidth);
+    return {
+      head: head,
+      texts: texts,
+      textWidth: textWidth,
+      width: width,
+      height: height
+    };
+  }
+
+  constructor(p: Props) {
+    super(p);
+    this.state = CustomTooltip.getDerivedStateFromProps(p);
+  }
+
+  componentDidMount() {
+    if (this.props.onOpen && this.props.activePoints) {
+      this.props.onOpen(this.props.activePoints);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.props.onClose) {
+      this.props.onClose();
+    }
+  }
+
+  render() {
+    return (
+      <ChartTooltip
+        {...this.props}
+        text={this.state.texts}
+        flyoutWidth={this.state.width}
+        flyoutHeight={this.state.height}
+        flyoutComponent={<Flyout style={{ stroke: 'none', fillOpacity: 0.6 }} />}
+        labelComponent={<CustomLabel head={this.state.head} textWidth={this.state.textWidth}/>} constrainToVisibleArea={true}
+      />
+    );
+  }
+}

@@ -7,7 +7,7 @@ import { getFormatter } from '../../../common/utils/formatter';
 import { VCLines, LegendItem, LineInfo, RichDataPoint, RawOrBucket, VCDataPoint } from '../types/VictoryChartInfo';
 import { Overlay } from '../types/Overlay';
 import { newBrushVoronoiContainer, BrushHandlers } from './Container';
-import { buildLegendInfo, findClosestDatapoint, toBuckets } from '../utils/victoryChartsUtils';
+import { buildLegendInfo, toBuckets } from '../utils/victoryChartsUtils';
 import { VCEvent, addLegendEvent } from '../utils/events';
 import { XAxisType } from '../../../common/types/Dashboards';
 
@@ -39,6 +39,7 @@ const overlayName = 'overlay';
 
 class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React.Component<Props<T, O>, State> {
   containerRef: React.RefObject<HTMLDivElement>;
+  hoveredItem?: VCDataPoint;
 
   constructor(props: Props<T, O>) {
     super(props);
@@ -57,6 +58,18 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
     window.removeEventListener('resize', this.handleResize);
   }
 
+  private onTooltipOpen = (points?: VCDataPoint[]) => {
+    if (points && points.length > 0) {
+      this.hoveredItem = points[0];
+    } else {
+      this.hoveredItem = undefined;
+    }
+  }
+
+  private onTooltipClose = () => {
+    this.hoveredItem = undefined;
+  }
+
   render() {
     const scaleInfo = this.scaledAxisInfo(this.props.data);
     const legendData = this.buildLegendData();
@@ -70,6 +83,19 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
     padding.bottom += legend.height;
 
     const events: VCEvent[] = [];
+    if (this.props.onClick) {
+      events.push({
+        target: 'parent',
+        eventHandlers: {
+          onClick: () => {
+            if (this.hoveredItem) {
+              this.props.onClick!(this.hoveredItem as RawOrBucket<O>);
+            }
+            return [];
+          }
+        }
+      });
+    }
     this.props.data.forEach((s, idx) => this.registerEvents(events, idx, 'serie-' + idx, s.legendItem.name));
     let useSecondAxis = showOverlay;
     let normalizedOverlay: RawOrBucket<O>[] = [];
@@ -95,7 +121,6 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
         normalizedOverlay = toBuckets(this.props.overlay.info.buckets, normalizedOverlay as (VCDataPoint & O)[], model, this.props.timeWindow);
       }
     }
-    const { dataEvents, onClick } = this.registerClickEvents(padding, height, showOverlay ? normalizedOverlay : undefined);
     const filteredData = this.props.data.filter(s => !this.state.hiddenSeries.has(s.legendItem.name));
     return (
       <div ref={this.containerRef}>
@@ -104,7 +129,7 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
           width={this.state.width}
           padding={padding}
           events={events}
-          containerComponent={newBrushVoronoiContainer(onClick, this.props.brushHandlers)}
+          containerComponent={newBrushVoronoiContainer(this.onTooltipOpen, this.onTooltipClose, this.props.brushHandlers)}
           scale={{x: this.props.xAxis === 'series' ? 'linear' : 'time'}}
           // Hack: 1 pxl on Y domain padding to prevent harsh clipping (https://github.com/kiali/kiali/issues/2069)
           domainPadding={{y: 1, x: this.props.xAxis === 'series' ? 50 : undefined}}
@@ -124,19 +149,18 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
                   q3: { fill: this.props.overlay!.info.lineInfo.color },
                   median: { stroke: 'white', strokeWidth: 2 }
                 }}
-                events={dataEvents}
               />
             ) : (
-              <ChartScatter key="overlay" name={overlayName} data={normalizedOverlay} style={{ data: this.props.overlay!.info.dataStyle }} events={dataEvents} />
+              <ChartScatter key="overlay" name={overlayName} data={normalizedOverlay} style={{ data: this.props.overlay!.info.dataStyle }} />
             )
           )}
-          {this.props.xAxis === 'series' ? this.renderCategories(dataEvents) : this.renderTimeSeries(dataEvents)}
+          {this.props.xAxis === 'series' ? this.renderCategories() : this.renderTimeSeries()}
           {this.props.xAxis === 'series' ? (
             <ChartAxis
               domain={[0, filteredData.length + 1]}
               style={{ tickLabels: {fontSize: 12, padding: 2} }}
               tickValues={filteredData.map(s => s.legendItem.name)}
-              tickFormat={_ => ''}
+              tickFormat={() => ''}
             />
           ) : (
             <ChartAxis
@@ -180,7 +204,7 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
     );
   }
 
-  private renderTimeSeries = (dataEvents: VCEvent[]) => {
+  private renderTimeSeries = () => {
     const groupOffset = this.props.groupOffset || 0;
     return (
       <ChartGroup offset={groupOffset}>
@@ -192,7 +216,6 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
             key: 'serie-' + idx,
             name: 'serie-' + idx,
             data: serie.datapoints,
-            events: dataEvents,
             style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }},
           });
         })}
@@ -200,7 +223,7 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
     );    
   }
 
-  private renderCategories = (dataEvents: VCEvent[]) => {
+  private renderCategories = () => {
     let domainX = 1;
     const nbSeries = this.props.data.length - this.state.hiddenSeries.size;
     const size = (this.props.sizeRatio || 1) * this.state.width / Math.max(nbSeries, 1);
@@ -212,7 +235,6 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
         key: 'serie-' + idx,
         name: 'serie-' + idx,
         data: serie.datapoints.map(d => ({ size: size, ...d, x: domainX++ })),
-        events: dataEvents,
         style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }},
         barWidth: size
       });
@@ -261,48 +283,6 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
         return null;
       }
     });
-  }
-
-  private registerClickEvents(padding: Padding, height: number, normalizedOverlay?: RawOrBucket<O>[]) {
-    const dataEvents: VCEvent[] = [];
-    let onClick: ((event: MouseEvent) => void) | undefined = undefined;
-    if (this.props.onClick) {
-      onClick = (event: MouseEvent) => {
-        // We need to get coordinates relative to the SVG
-        const svg = (event.target as SVGElement).viewportElement as SVGSVGElement;
-        if (!svg) {
-          return;
-        }
-        const pt = svg.createSVGPoint();
-        pt.x = event.clientX;
-        pt.y = event.clientY;
-        const clicked = pt.matrixTransform(svg.getScreenCTM()!.inverse());
-        let flatDP: RawOrBucket<LineInfo>[] = this.props.data.flatMap<RawOrBucket<LineInfo>>(line => line.datapoints);
-        if (normalizedOverlay) {
-          flatDP = flatDP.concat(normalizedOverlay);
-        }
-        const closest = findClosestDatapoint(
-          flatDP,
-          clicked.x - padding.left,
-          clicked.y - padding.top,
-          this.state.width - padding.left - padding.right,
-          height - padding.top - padding.bottom);
-        if (closest) {
-          this.props.onClick!(closest as RawOrBucket<O>);
-        }
-      };
-
-      dataEvents.push({
-        target: 'data',
-        eventHandlers: {
-          onClick: event => {
-            onClick!(event);
-            return [];
-          }
-        }
-      });
-    }
-    return { dataEvents: dataEvents, onClick: onClick };
   }
 
   private scaledAxisInfo(data: VCLines<VCDataPoint & T>) {

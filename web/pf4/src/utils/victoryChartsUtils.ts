@@ -1,5 +1,5 @@
 import { Datapoint, NamedTimeSeries } from '../../../common/types/Metrics';
-import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend, RichDataPoint, LineInfo, RawOrBucket, BucketDataPoint } from '../types/VictoryChartInfo';
+import { VCLines, LegendInfo, VCLine, LegendItem, VCDataPoint, makeLegend, RichDataPoint, LineInfo, BucketDataPoint } from '../types/VictoryChartInfo';
 import { filterAndNameMetric, LabelsInfo } from '../../../common/utils/timeSeriesUtils';
 import { ChartModel, XAxisType } from '../../../common/types/Dashboards';
 import { Overlay, OverlayInfo } from '../types/Overlay';
@@ -130,44 +130,4 @@ export const toOverlay = <T extends LineInfo>(info: OverlayInfo<T>, dps: VCDataP
     info: info,
     vcLine: toVCLine(dps, info.lineInfo)
   };
-};
-
-const createDomainConverter = <T extends LineInfo>(dps: RawOrBucket<T>[], pxlSize: number, numFunc: (dp: RawOrBucket<T>) => number) => {
-  // Clicked position in screen coordinate (relative to svg element) are transformed in domain-data coordinate
-  //  This is assuming a linear scale and no data padding
-  const values = dps.map(dp => numFunc(dp));
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = Math.max(1, max - min);
-  return {
-    asPixels: (domain: number) => pxlSize * (domain - min) / range
-  };
-};
-
-// findClosestDatapoint will search in all datapoints which is the closer to the given position in pixels
-//  This is done by converting screen coords into domain coords, then finding the least distance between this converted point and all the datapoints.
-export const findClosestDatapoint = <T extends LineInfo>(flatDP: RawOrBucket<T>[], posX: number, posY: number, width: number, height: number): RawOrBucket<T> | undefined => {
-  if (width <= 0 || height <= 0 || flatDP.length === 0) {
-    return undefined;
-  }
-  // reversed y coords
-  posY = height - posY;
-  const xNumFunc: (dp: RawOrBucket<T>) => number = typeof flatDP[0].x === 'object' ? dp => (dp.x as Date).getTime() : dp => dp.x as number;
-  // yFunc: When datapoint is a bucket, use the min value to locate position
-  // This is for consistency, as it's also the min that seems to be used for tooltips / voronoi (I'd prefer median otherwise)
-  const yFunc = (dp: RawOrBucket<T>) => Array.isArray(dp.y) ? Math.min(...dp.y) : dp.y;
-  const xConv = createDomainConverter(flatDP, width, xNumFunc);
-  const yConv = createDomainConverter(flatDP, height, yFunc);
-
-  type DataPointDistance = {
-    dp: RawOrBucket<T>,
-    dist: number
-  };
-  return flatDP.reduce((p: DataPointDistance | null, c: RawOrBucket<T>) => {
-    const newDist: DataPointDistance = {
-      dp: c,
-      dist: Math.abs(posX - xConv.asPixels(xNumFunc(c))) + Math.abs(posY - yConv.asPixels(yFunc(c)))
-    };
-    return (p === null || newDist.dist < p.dist) ? newDist : p;
-  }, null)!.dp;
 };
