@@ -91,4 +91,20 @@ storiesOf('ChartWithLegend', module)
   })
   .add('with crossing point', () => {
     return <ChartWithLegend data={crossing} unit="seconds" stroke={true} seriesComponent={(<ChartLine/>)} />;
+  })
+  .add('with style override', () => {
+    return (
+      <ChartWithLegend
+        data={[traces]}
+        unit="seconds"
+        seriesComponent={(<ChartScatter style={{ data: {
+          fill: 'blue',
+          stroke: dp => (dp && dp.size > 5) ? 'orange' : undefined,
+          strokeWidth: 3,
+          opacity: dp => (dp && dp.size === 5) ? 0.2 : undefined
+        }}}/>)}
+        onClick={dp => alert(`${dp.name}: [${dp.x}, ${dp.y}]`)}
+        overrideSeriesComponentStyle={false}
+      />
+    );
   });
