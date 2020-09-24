@@ -15,6 +15,7 @@ type Props<T extends RichDataPoint, O extends LineInfo> = {
   chartHeight?: number;
   data: VCLines<T & VCDataPoint>;
   seriesComponent: React.ReactElement;
+  overrideSeriesComponentStyle?: boolean;
   stroke?: boolean;
   fill?: boolean;
   groupOffset?: number;
@@ -212,12 +213,11 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
           if (this.state.hiddenSeries.has(serie.legendItem.name)) {
             return undefined;
           }
-          return React.cloneElement(this.props.seriesComponent, {
+          return React.cloneElement(this.props.seriesComponent, this.withStyle({
             key: 'serie-' + idx,
             name: 'serie-' + idx,
             data: serie.datapoints,
-            style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }},
-          });
+          }, serie.color));
         })}
       </ChartGroup>
     );    
@@ -231,15 +231,21 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
       if (this.state.hiddenSeries.has(serie.legendItem.name)) {
         return undefined;
       }
-      return React.cloneElement(this.props.seriesComponent, {
+      return React.cloneElement(this.props.seriesComponent, this.withStyle({
         key: 'serie-' + idx,
         name: 'serie-' + idx,
         data: serie.datapoints.map(d => ({ size: size, ...d, x: domainX++ })),
-        style: { data: { fill: this.props.fill ? serie.color : undefined, stroke: this.props.stroke ? serie.color : undefined }},
         barWidth: size
-      });
+      }, serie.color));
     });
   }
+
+  private withStyle = (props: any, color?: string) => {
+    return this.props.overrideSeriesComponentStyle === false ? props : {
+      ...props,
+      style: { data: { fill: this.props.fill ? color : undefined, stroke: this.props.stroke ? color : undefined }}
+    };
+  };
 
   private handleResize = () => {
     if (this.containerRef && this.containerRef.current) {
