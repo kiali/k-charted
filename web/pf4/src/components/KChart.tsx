@@ -24,7 +24,6 @@ export const maximizeButtonStyle: React.CSSProperties = {
   marginBottom: '-3.5em',
   marginRight: '0.8em',
   top: '-2.7em',
-  zIndex: 1,
   position: 'relative',
   float: 'right'
 };
