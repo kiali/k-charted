@@ -240,6 +240,7 @@ class ChartWithLegend<T extends RichDataPoint, O extends LineInfo> extends React
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private withStyle = (props: any, color?: string) => {
     return this.props.overrideSeriesComponentStyle === false ? props : {
       ...props,
