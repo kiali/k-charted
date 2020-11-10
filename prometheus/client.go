@@ -106,7 +106,7 @@ func (in *Client) FetchHistogramRange(metricName, labels, grouping string, q *Me
 }
 
 func (in *Client) fetchRange(query string, bounds v1.Range) Metric {
-	result, err := in.api.QueryRange(context.Background(), query, bounds)
+	result, _, err := in.api.QueryRange(context.Background(), query, bounds)
 	if err != nil {
 		return Metric{Err: err}
 	}
@@ -122,7 +122,7 @@ func (in *Client) GetMetricsForLabels(labels []string) ([]string, error) {
 	// Arbitrarily set time range. Meaning that discovery works with metrics produced within last hour
 	end := time.Now()
 	start := end.Add(-time.Hour)
-	results, err := in.api.Series(context.Background(), labels, start, end)
+	results, _, err := in.api.Series(context.Background(), labels, start, end)
 	if err != nil {
 		return nil, err
 	}
