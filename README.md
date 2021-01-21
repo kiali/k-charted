@@ -1,3 +1,7 @@
+# -- DISCONTINUED REPOSITORY --
+
+The K-charted source code has been merged in Kiali main repositories (kiali and kiali-ui). This repository should not receive any (non-critical) update further on.
+
 # K-Charted
 
 Dashboards and Charts library for Kubernetes, to use with `MonitoringDashboard` custom resources as [documented in Kiali](https://www.kiali.io/documentation/runtimes-monitoring/#_create_new_dashboards).
